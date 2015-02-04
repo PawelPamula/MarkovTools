@@ -16,7 +16,7 @@ notifications:
 script:
   - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
   - julia -e 'Pkg.clone(pwd())'
-  - julia -e 'Pkg.build("$name")' 
+  - julia -e 'Pkg.build("MarkovTools")' 
   - if [ -f test/runtests.jl ]; then julia --check-bounds=yes --code-coverage test/runtests.jl -e 'Pkg.test("$name")'
 
 after_success:
