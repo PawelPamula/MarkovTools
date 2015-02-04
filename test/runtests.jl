@@ -1,5 +1,11 @@
 using MarkovTools
 using Base.Test
 
-# write your own tests here
-@test 1 == 1
+tests = [
+    "test_permutations"
+]
+
+for t in tests
+    test_fn = "$t.jl"
+    include(test_fn)
+end
