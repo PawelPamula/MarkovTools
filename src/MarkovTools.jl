@@ -7,7 +7,8 @@ export
 
     readbitstream,
 
-    min
+    min,
+    min2
 
 include("permutations.jl")
 include("prng/input.jl")
