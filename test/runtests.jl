@@ -3,7 +3,8 @@ using Base.Test
 
 tests = [
     "test_permutations",
-    "prng/test_input"
+    #"prng/test_input"
+    "test_rozwiazanie"
 ]
 
 if haskey(ENV, "JL_LOAD_PATH")
