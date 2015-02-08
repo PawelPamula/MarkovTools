@@ -5,7 +5,7 @@ function count_fixed_points(array)
             result += 1
         end
     end
-    return result
+    return result + 1
 end
 
 
