@@ -5,13 +5,9 @@ export
     count_fixed_points,
     count_cycles,
 
-    readbitstream,
-
-    min,
-    min2
+    readbitstream
 
 include("permutations.jl")
 include("prng/input.jl")
-include("rozwiazanie.jl")
 
 end # module

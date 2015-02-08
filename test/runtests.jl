@@ -6,8 +6,6 @@ tests = [
     "prng/test_input"
 ]
 
-push!(LOAD_PATH, "test")
-
 for t in tests
     test_fn = "$t.jl"
     include(test_fn)

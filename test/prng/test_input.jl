@@ -3,8 +3,9 @@
 module TestInput
     using FactCheck
     using MarkovTools
+    using Base
 
-    test_folder = "prng"
+    test_folder = dirname(Base.source_path())
 
     facts("Reading nonexistent file") do
         @fact_throws readbistream(joinpath(test_folder, "abc.txt"))
