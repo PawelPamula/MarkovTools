@@ -8,10 +8,17 @@ export
     readbitstream,
 
     min,
-    min2
+    min2,
+    Spritz_Encrypt,
+    Spritz_Decrypt
+    
 
 include("permutations.jl")
 include("prng/input.jl")
 include("rozwiazanie.jl")
+include("rozwiazanie2.jl")
+include("spritz.jl")
+
+
 
 end # module

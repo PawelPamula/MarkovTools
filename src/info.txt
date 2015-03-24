@@ -1,0 +1,46 @@
+
+To jak wywolywac podstawowe rzeczy kopiuje z poczatku pliku spritz.jl
+
+# Albo wywolujemy z tablicami liczb, wtedy trzeba podac N
+# Np.
+# K=[3 4 5]
+# M=[4 3 2 4 5]
+# C = Spritz_Encrypt(8,K,M);
+# Spritz_Decrypt(8,K,C)
+# Spritz_Hash(8,[3 4 5 4 2],32)
+#
+# Albo z "napisami", wtedy przyjmowane jest N=8, kazdy znak 'x' zamieniany jest na int('x'), np.
+# Spritz_Hash("arcfour",32)
+# 
+# 
+
+mysle, ze to w miare ok zrobione.
+
+
+
+Teraz: jest sobie plik keys_N3_len3.txt,
+tam po prostu sa wszystkie mozliwe klucze dlugoci 3 z N=3
+
+wywolujac plik
+include("spritz_go.jl") zaszyfrowywujemy wiadomosc M ustawiona recznie w tym pliku (teraz jest to M=[0 0 0 0 0])
+wszystkimi kluczami z tego pliku.
+Wyniki zapisywane sa z kolei do pliku 
+encrypted_all_keys_N3_len3_m.txt
+Jak damy N=2 to mozemy ciagi losowych bitow testowac :) dla roznych dlugosci klucza, stwierdzajac empirycznie (testami) kiedy jest ok :)
+
+
+
+juz nie ma duzo roboty (ale trzeba troche nagrzebac w plikach od spritza, ktore sa juz w miare ok zrobione... 
+podorabiam im jakies opcje, zeby to ladnie dalej bylo), aby zamiast szyfrowac ta wiadomosc wypluwac tylko koncowy,
+jak to niektorzy zwa, "stan wewnetrzny " :)
+
+
+
+
+
+
+
+
+
+
+

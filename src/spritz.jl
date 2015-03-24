@@ -1,4 +1,18 @@
 
+# Na razie tutaj krotki "doc"
+
+# Albo wywolujemy z tablicami liczb, wtedy trzeba podac N
+# Np.
+# K=[3 4 5]
+# M=[4 3 2 4 5]
+# C = Spritz_Encrypt(8,K,M);
+# Spritz_Decrypt(8,K,C)
+# Spritz_Hash(8,[3 4 5 4 2],32)
+#
+# Albo z "napisami", wtedy przyjmowane jest N=8, kazdy znak 'x' zamieniany jest na int('x'), np.
+# Spritz_Hash("arcfour",32)
+# 
+# 
  
 
 type Spritz  
@@ -150,7 +164,7 @@ function Spritz_Initialize(sp,n::Int64)
     sp.w=1
     sp.N=n
     sp.S=[]
-     for v=1:n 
+     for v=1:n s
 	  sp.S=[sp.S,v-1] 
       end
 end
@@ -159,16 +173,61 @@ function Spritz_KeySetup(sp::Spritz,K::Array{Int64,2})
   Spritz_Absorb(sp,K)
 end
      
-function Spritz_Encrypt(n::Int64, K::Array{Int64,2}, M::Array{Int64,2})
+     
+     
+function Spritz_Encrypt(n::Int64, K::Array{Int64,2}, M::Array{Int64,2}, debug=0)
+#debug = 0, return C
+#debug = 1, return permutation S
   sp=Spritz(n)
   Spritz_KeySetup(sp,K)
-  Spritz_Show(sp)
+  #Spritz_Show(sp)
   SQUEEZE=Spritz_Squeeze(sp,size(M)[2])
   C=[]
   for v in 1:size(M)[2] 
     C=[C, (M[v]+ SQUEEZE[v])%n] 
   end
-  println("C = ", C);
+ # println("C = ", C);
+ # print("debug = ", debug,"\t")
+  if(debug==0)
+    return C'
+  else
+    return sp.S'
+    end
+    
+end
+
+
+     
+function Spritz_Encrypt(K_str::ASCIIString, M_str::ASCIIString)
+  n=256
+  sp=Spritz(n)
+  
+  K=[]
+  
+  for v in 1:length(K_str)
+        K=[K,int(K_str[v])]
+  end
+  
+ 
+ M=[]
+  for v in 1:length(M_str)
+        M=[M,int(M_str[v])]
+  end
+ 
+ K=K'
+ M=M'
+ #println("K=",K," , M=",M, " , size(M)=")
+ #println(size(M))
+  
+  
+  Spritz_KeySetup(sp,K')
+  Spritz_Show(sp)
+  SQUEEZE=Spritz_Squeeze(sp,size(M)[2])
+  C=[]
+  for v in 1:size(M)[2] 
+    C=[C, char((M[v]+ SQUEEZE[v])%n)] 
+  end
+  #println("C = ", C);
   return C'
 end
 
@@ -194,10 +253,42 @@ function Spritz_Decrypt(n::Int64, K::Array{Int64,2}, C::Array{Int64,2})
 end
 
 
+
 function Spritz_Hash(n::Int64, M::Array{Int64,2}, r::Int64)
  sp=Spritz(n)
  Spritz_Absorb(sp,M)
  Spritz_AbsorbStop(sp)
  Spritz_AbsorbByte(sp,r)
- return Spritz_Squeeze(sp,r)
+ R = Spritz_Squeeze(sp,r)
+ R = R'
+ return R
+end
+
+
+function Spritz_Hash(M_str::ASCIIString, r::Int64)
+ n=256
+ sp=Spritz(n)
+ 
+ M=[]
+  for v in 1:length(M_str)
+        M=[M,int(M_str[v])]
+  end
+ 
+ M=M'
+ 
+ Spritz_Absorb(sp,M)
+ Spritz_AbsorbStop(sp)
+ Spritz_AbsorbByte(sp,r)
+ SQUEEZED=Spritz_Squeeze(sp,r)
+ SQUEEZED=SQUEEZED'
+ 
+ R=[]
+ for v in 1:size(SQUEEZED)[2]
+     R = [R, hex(SQUEEZED[v])]
+    # print(char(SQUEEZED[v])," ")
+  end
+     
+     R=R'
+ 
+ return R
 end
