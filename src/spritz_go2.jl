@@ -1,6 +1,6 @@
 
 # TO DO: filename as parameter? in file N, and len given?
-
+# test2
 # we want to read a file encrypted_all_tmp.txt
 
 
