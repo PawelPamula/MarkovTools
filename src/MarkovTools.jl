@@ -14,6 +14,7 @@ export
 
 include("permutations.jl")
 include("prng/input.jl")
-include("spritz.jl")
+include("spritz/spritz.jl")
+include("monotonicities.jl")
 
 end # module

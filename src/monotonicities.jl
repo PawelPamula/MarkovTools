@@ -1,5 +1,3 @@
-using Distributions
-
 #create a random transition matrix of n size with rational probabilities with denominator k
 function RandomTransitionMatrix(n::Int64,k::Int64)
   RandM=rand(DiscreteUniform(1,n),(n,k))
@@ -169,7 +167,7 @@ function check_vector_j(Realization_function::Array{Int64,2},j::Int64,C::Array{I
 end
 
 #searching for posible function on state 'j' when we know previous, i<j, functions
-function Realization_j(j::Int64,Realization_function::Array{Int64,2},C::Array{Int64,2},aF::Vector{Vector{Int64}})
+function Realization_j(j::Int64,Realization_function::Array{Int64,2},C::Array{Int64,2},aF)
   if j>size(aF)[1]
     return true
   end
