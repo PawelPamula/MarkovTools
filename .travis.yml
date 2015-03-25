@@ -4,10 +4,8 @@ os:
   - osx
 julia:
   - release
-  - nightly
+#  - nightly
 branches:
-  only:
-    - master
 notifications:
   email: false
 
