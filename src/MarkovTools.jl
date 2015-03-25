@@ -14,8 +14,6 @@ export
 
 include("permutations.jl")
 include("prng/input.jl")
-include("rozwiazanie.jl")
-include("rozwiazanie2.jl")
 include("spritz.jl")
 
 end # module
