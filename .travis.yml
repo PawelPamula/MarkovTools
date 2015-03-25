@@ -5,6 +5,9 @@ os:
 julia:
   - release
   - nightly
+branches:
+  only:
+    - master
 notifications:
   email: false
 
