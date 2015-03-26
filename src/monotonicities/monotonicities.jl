@@ -210,9 +210,8 @@ function check_stoch_mob_not_real(C,P)
   return false
 end
 
-function searching_for_stoch_mob_not_real(N::Int64)
+function searching_for_stoch_mob_not_real(N::Int64, n:Int64)
   for i in 1:N
-    n=rand(7:12)
     m=rand(7:12)
     C=RandomGraphMatrix(n)
     for j in 1:1000
