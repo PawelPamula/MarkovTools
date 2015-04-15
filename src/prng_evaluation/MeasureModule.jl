@@ -1,6 +1,10 @@
 module MeasureModule
 
-export Partition, Measure, distTV, defaultPart, printMeasure
+export  Partition,
+        Measure,
+        distTV,
+        defaultPart,
+        printMeasure
 
 # A partition is represented as an array of float pairs.
 # It must have the following form:
@@ -24,27 +28,7 @@ type Measure
     # vals give measures of the above intervals
     vals::Array{Float64, 1}
 
-#     function Measure(partition_::Partition,
-#                     measure_::Function)
-#         this = new()
-#         partition = partition_
-#         measure = measure_
-#         
-#         return this
-#     end
 end # type Measure
-
-        
-#         dist_TV = function(u, v, Part = DefaultPart)
-#             pos = 0.0
-#             for p in Part
-#                 x = u(p) - v(p)
-#                 if x > 0
-#                     pos = pos + x
-#                 end
-#             end
-#             max(pos, 1 - pos)
-#         end    
 
 
 function printMeasure(m::Measure)
