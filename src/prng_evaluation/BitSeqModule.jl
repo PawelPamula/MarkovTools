@@ -1,6 +1,10 @@
 module BitSeqModule
 
-export countOnes, S_star, S_lil, stringToBitArray
+export  countOnes,
+        countFracs,
+        S_star,
+        S_lil,
+        stringToBitArray
 
 # Literature:
 # [1] Y. Wang, T. Nicol, On Statistical Based Testing of Pseudo Random
@@ -30,6 +34,10 @@ end
 function countOnes(bits::Array{Bool, 1}, checkPoints::Array{Int64, 1})
     n = length(bits)
     nrOfCheckPoints = length(checkPoints)
+    if (n < checkPoints[nrOfCheckPoints])
+        error("countOnes: given bit sequence is to short.\nLast " *
+              "checkpoint equals $(checkPoints[nrOfCheckPoints]) while sequence is of length $n")
+    end
     ones = Array(Int64, nrOfCheckPoints)
     ones[1] = 0
     cp = checkPoints[1]
@@ -50,6 +58,41 @@ function countOnes(bits::Array{Bool, 1}, checkPoints::Array{Int64, 1})
     end
     ones
 end 
+
+# Counts fraction of time "above the line" for each checkpoint.
+function countFracs(bits::Array{Bool, 1}, checkPoints::Array{Int64, 1})
+    n = length(bits)
+    nrOfCheckPoints = length(checkPoints)
+    if (n < checkPoints[nrOfCheckPoints])
+        error("countFracs: given bit sequence is to short.\nLast " *
+              "checkpoint equals $(checkPoints[nrOfCheckPoints]) while sequence is of length $n")
+    end
+    fracs = Array(Float64, nrOfCheckPoints)
+    prevBalance = 0
+    balance = 0
+    aboveTheLine = 0
+    cp = checkPoints[1]
+    cp_ind = 1
+    for i in 1:n
+        prevBalance = balance
+        balance = balance + (bits[i] ? 1 : -1)
+        if (prevBalance > 0 || balance > 0)
+            aboveTheLine = aboveTheLine + 1
+        end
+        if (i >= cp)
+            fracs[cp_ind] = aboveTheLine / cp
+            cp_ind = cp_ind + 1
+            
+            if (cp_ind <= nrOfCheckPoints)
+                cp = checkPoints[cp_ind]
+            else
+                break
+            end
+        end
+    end
+    fracs
+end 
+
 
 # Calculates values S* as defined in [1].
 # @param n length of a bitstring
