@@ -116,7 +116,7 @@ end
 addToBucket = function(lmc, cp_ind, val)
     for i in 1:lmc.nrOfParts
         p = lmc.part[i]
-        if (p[1] <= val <= p[2])
+        if (p[1] <= val < p[2])
             lmc.buckets[cp_ind, i] = lmc.buckets[cp_ind, i] + 1
             return
         end

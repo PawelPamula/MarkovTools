@@ -96,7 +96,7 @@ end
 addToBucket = function(amc, cp_ind, frac)
     for i in 1:amc.nrOfParts
         p = amc.part[i]
-        if (p[1] <= frac <= p[2])
+        if (p[1] <= frac < p[2])
             amc.buckets[cp_ind, i] = amc.buckets[cp_ind, i] + 1
             return
         end
