@@ -15,7 +15,7 @@ function echo()
     end
 end
 
-#function main()
+function main()
     #m = makeLilMeasureU(2^30, defaultPart)
     #printMeasure(m)
     #return
@@ -56,10 +56,18 @@ end
     println("\n\n\nASine Empirical:")
     MM.printMeasure(asEmpirical)
     
-    d_lil = MM.distTV(lilIdeal, lilEmpirical)
-    d_as = MM.distTV(asIdeal, asEmpirical)
-    println("\n\n\ndistance for LIL = $d_lil")
-    println("distance for ASine = $d_as")
-#end
+    tv_lil = MM.distTV(lilIdeal, lilEmpirical)
+    hell_lil = MM.distHell(lilIdeal, lilEmpirical)
+    rms_lil = MM.distRMS(lilIdeal, lilEmpirical)
+    tv_as = MM.distTV(asIdeal, asEmpirical)
+    hell_as = MM.distHell(asIdeal, asEmpirical)
+    rms_as = MM.distRMS(asIdeal, asEmpirical)
+    println("\n\n\ntotal variation for LIL = $tv_lil")
+    println("hellinger for LIL = $hell_lil")
+    println("root mean square for LIL = $rms_lil")
+    println("\n\n\ntotal variation for AS = $tv_as")
+    println("hellinger for AS = $hell_as")
+    println("root mean square for AS = $rms_as")
+end
 
-#main()
+main()

@@ -3,6 +3,8 @@ module MeasureModule
 export  Partition,
         Measure,
         distTV,
+        distHell,
+        distRMS,
         defaultPart,
         printMeasure
 
@@ -30,12 +32,19 @@ type Measure
 
 end # type Measure
 
+function myRound(x, n)
+    round(x * 10^n) / 10^n
+end
 
 function printMeasure(m::Measure)
     n = length(m.part)
     for i in 1:n
         p = m.part[i]
-        print("($(p[1]), $(p[2])) -> $(m.vals[i])\n")
+        a = myRound(p[1], 3)
+        b = myRound(p[2], 3)
+        s = sign(m.vals[i])
+        v = myRound(abs(m.vals[i]), 5)
+        print("($a, $b) -> $v\n")
     end
 end
 
@@ -56,6 +65,35 @@ distTV = function(u::Measure, v::Measure)
         end
     end
     return d
+end
+
+distHell = function(u::Measure, v::Measure)
+    if u.part != v.part
+        throw("Measures operate on different partitions")
+    end
+    n = length(u.part)
+    s = 0.0
+    for i in 1:n
+        x = u.vals[i]
+        y = v.vals[i]
+        s = s + (sqrt(x) - sqrt(y))^2
+    end
+    return sqrt(s/2)
+end
+
+
+distRMS = function(u::Measure, v::Measure)
+    if u.part != v.part
+        throw("Measures operate on different partitions")
+    end
+    n = length(u.part)
+    s = 0.0
+    for i in 1:n
+        x = u.vals[i]
+        y = v.vals[i]
+        s = s + (x - y)^2
+    end
+    return sqrt(s/n)
 end
 
 end # module
