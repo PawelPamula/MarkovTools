@@ -10,7 +10,7 @@ using BitSeqModule
 # @param a begining of the interval whose measure is calculated
 # @param b end of the interval whose measure is calculated
 # @return probability that fraction of the time "above the line" is between a and b.
- function arcSineMeasureU(n::Int64, a::Float64, b::Float64)
+ function arcSineMeasureU(n::Integer, a::Number, b::Number)
     if a > b
         return 0
     end
@@ -32,7 +32,7 @@ using BitSeqModule
 # @param n length of bit sequence
 # @param part partition on which Measure object is defined
 # @return Measure giving distribution of the fraction of the time "above the line".
-function makeArcSineMeasureU(n::Int64, part::Partition)
+function makeArcSineMeasureU(n::Integer, part::Partition)
     vals = zeros(Float64, length(part))
     for i in 1:length(part)
         vals[i] = arcSineMeasureU(n, part[i][1], part[i][2])
@@ -55,7 +55,7 @@ type ArcSineMeasureCreator
     
     # check points specify lengths of prefixes of given bit sequences.
     # Measure may be created using only a prefix, not whole sequence.
-    checkPoints::Array{Int64, 1}
+    checkPoints::Array{Uint64, 1}
     
     # number of check points (i.e. length of checkPoints)
     nrOfCheckPoints::Int64
@@ -66,14 +66,14 @@ type ArcSineMeasureCreator
     buckets::Array{Int64, 2}
     
     
-    function ArcSineMeasureCreator(checkPoints_::Array{Int64, 1}, part_::Partition)
+    function ArcSineMeasureCreator(checkPoints_::Array{Uint64, 1}, part_::Partition)
         this = new()
         this.checkPoints = copy(checkPoints_)
         this.part = copy(part_)
         this.nrOfSeqs = 0
         this.nrOfParts = length(this.part)
         this.nrOfCheckPoints = length(this.checkPoints)
-        this.buckets = Array(Int64, this.nrOfCheckPoints, this.nrOfParts)
+        this.buckets = Array(Uint64, this.nrOfCheckPoints, this.nrOfParts)
         for cp in 1:this.nrOfCheckPoints
             for p in 1:this.nrOfParts
                 this.buckets[cp, p] = 0
@@ -83,9 +83,8 @@ type ArcSineMeasureCreator
     end
 end
         
-addSeq = function(amc::ArcSineMeasureCreator, bits::Array{Bool, 1})     
+addSeq = function(amc::ArcSineMeasureCreator, bits::BitSeq)     
     amc.nrOfSeqs = amc.nrOfSeqs + 1
-    n = length(bits)
     fracs = countFracs(bits, amc.checkPoints)            
     for cp_ind in 1:amc.nrOfCheckPoints
         cp = amc.checkPoints[cp_ind]

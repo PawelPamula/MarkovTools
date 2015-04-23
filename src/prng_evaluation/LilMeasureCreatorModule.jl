@@ -15,7 +15,7 @@ using BitSeqModule
 # @param a begining of the interval whose measure is calculated
 # @param b end of the interval whose measure is calculated
 # @return Value \mu^U_n(a, b)
-function lilMeasureU(n::Int64, a::Float64, b::Float64)
+function lilMeasureU(n::Integer, a::Number, b::Number)
     N = Normal()
     s = sqrt(2*log(log(n)))
     cdf(N, b*s) - cdf(N, a*s)
@@ -47,7 +47,7 @@ end
 # @param n length of bit sequence
 # @param part partition on which Measure object is defined
 # @return Measure object corresponding to \mu^U_n
-function makeLilMeasureU(n::Int64, part::Partition = defaultPart)
+function makeLilMeasureU(n::Integer, part::Partition = defaultPart)
     vals = zeros(Float64, length(part))
     for i in 1:length(part)
         vals[i] = lilMeasureU(n, part[i][1], part[i][2])
@@ -70,7 +70,7 @@ type LilMeasureCreator
     
     # check points specify lengths of prefixes of given bit sequences.
     # Measure may be created using only a prefix, not whole sequence.
-    checkPoints::Array{Int64, 1}
+    checkPoints::Array{Uint64, 1}
     
     # number of check points (i.e. length of checkPoints)
     nrOfCheckPoints::Int64
@@ -80,18 +80,18 @@ type LilMeasureCreator
     # This array is updated as new sequences appear. It is later used to create a measure.
     buckets::Array{Int64, 2}
     
-    function LilMeasureCreator(checkPoints_::Array{Int64, 1})
+    function LilMeasureCreator(checkPoints_::Array{Uint64, 1})
         return LilMeasureCreator(checkPoints_, defaultPart)
     end
     
-    function LilMeasureCreator(checkPoints_::Array{Int64, 1}, part_::Partition)
+    function LilMeasureCreator(checkPoints_::Array{Uint64, 1}, part_::Partition)
         this = new()
         this.checkPoints = copy(checkPoints_)
         this.part = copy(part_)
         this.nrOfSeqs = 0
         this.nrOfParts = length(this.part)
         this.nrOfCheckPoints = length(this.checkPoints)
-        this.buckets = Array(Int64, this.nrOfCheckPoints, this.nrOfParts)
+        this.buckets = Array(Uint64, this.nrOfCheckPoints, this.nrOfParts)
         for cp in 1:this.nrOfCheckPoints
             for p in 1:this.nrOfParts
                 this.buckets[cp, p] = 0
@@ -103,10 +103,10 @@ end
 
 
         
-addSeq = function(lmc::LilMeasureCreator, bits::Array{Bool, 1})     
+addSeq = function(lmc::LilMeasureCreator, bits::BitSeq)  
     lmc.nrOfSeqs = lmc.nrOfSeqs + 1
-    n = length(bits)
     ones = countOnes(bits, lmc.checkPoints)            
+    #println("LMC.addSeq $ones")
     for cp_ind in 1:lmc.nrOfCheckPoints
         cp = lmc.checkPoints[cp_ind]
         addToBucket(lmc, cp_ind, S_lil(cp, ones[cp_ind]))

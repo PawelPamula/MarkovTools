@@ -1,23 +1,63 @@
 module BitSeqModule
 
-export  countOnes,
+export  BitSeq,
+        getNrOfBits,
+        getNrOfBytes,
+        get,
+        countOnes,
         countFracs,
         S_star,
         S_lil,
         stringToBitArray
-
+     
 # Literature:
 # [1] Y. Wang, T. Nicol, On Statistical Based Testing of Pseudo Random
 #     Sequences and Experiments wiht PHP and Debian OpenSSL, 2014
+   
+# Type for representing 0-1 sequences.
+type BitSeq
+
+    # data from which bits are extracted.
+    data::Array{Uint32, 1}
+    
+    # physical length of the array with data
+    dataL::Integer
+    
+    function BitSeq(data::Array{Uint32, 1})
+        this = new()
+        this.dataL = length(data)
+        this.data = data
+        return this
+    end
+end #type BitSeq
+
+function getNrOfBytes(bits::BitSeq)
+    bits.dataL * 4
+end
+
+function getNrOfBits(bits::BitSeq)
+    bits.dataL * 32
+end
+
+# Get ith bit in given bit sequence. Bits are indexed, as in Julia arrays, from 1.
+function get(bits::BitSeq, i::Integer)
+    if (i < 1 || i > getNrOfBits(bits))
+        error("Invalid bit index: $i")
+    end
+    i = i-1
+    nr, b = divrem(i, 32)
+    a = bits.data[nr+1]
+    return (a & (1 << b)) == 0 ? 0 : 1
+end
 
 # Counts number of ones in a bitstring.
 # @param bits sequence (array) of bits
 # @return number of ones in that sequence
-function countOnes(bits::Array{Bool, 1})
-    n = length(bits)
+function countOnes(bits::BitSeq)
+    n = getNrOfBits(bits)
     s = 0
     for i in 1:n
-        if bits[i]
+        if get(bits, i) == 1
             s = s + 1
         end
     end
@@ -31,8 +71,8 @@ end
 # @param checkPoints check points as an array of ascending integers
 # @return number of of ones in each check points, as an array of
 #         of integers of the same length as checkpoints
-function countOnes(bits::Array{Bool, 1}, checkPoints::Array{Int64, 1})
-    n = length(bits)
+function countOnes(bits::BitSeq, checkPoints::Array{Uint64, 1})
+    n = getNrOfBits(bits)
     nrOfCheckPoints = length(checkPoints)
     if (n < checkPoints[nrOfCheckPoints])
         error("countOnes: given bit sequence is to short.\nLast " *
@@ -43,7 +83,7 @@ function countOnes(bits::Array{Bool, 1}, checkPoints::Array{Int64, 1})
     cp = checkPoints[1]
     cp_ind = 1
     for i in 1:n
-        if bits[i]
+        if get(bits, i) == 1
             ones[cp_ind] = ones[cp_ind] + 1
         end
         if (i >= cp)
@@ -60,8 +100,8 @@ function countOnes(bits::Array{Bool, 1}, checkPoints::Array{Int64, 1})
 end 
 
 # Counts fraction of time "above the line" for each checkpoint.
-function countFracs(bits::Array{Bool, 1}, checkPoints::Array{Int64, 1})
-    n = length(bits)
+function countFracs(bits::BitSeq, checkPoints::Array{Uint64, 1})
+    n = getNrOfBits(bits)
     nrOfCheckPoints = length(checkPoints)
     if (n < checkPoints[nrOfCheckPoints])
         error("countFracs: given bit sequence is to short.\nLast " *
@@ -75,7 +115,7 @@ function countFracs(bits::Array{Bool, 1}, checkPoints::Array{Int64, 1})
     cp_ind = 1
     for i in 1:n
         prevBalance = balance
-        balance = balance + (bits[i] ? 1 : -1)
+        balance = balance + (get(bits, i) == 1 ? 1 : -1)
         if (prevBalance > 0 || balance > 0)
             aboveTheLine = aboveTheLine + 1
         end
@@ -98,7 +138,7 @@ end
 # @param n length of a bitstring
 # @param ones number of ones in a bitstring
 # @return value S*
-function S_star(n::Int64, ones::Int64)
+function S_star(n::Integer, ones::Integer)
     (2*ones - n) / sqrt(n)
 end
 
@@ -106,7 +146,7 @@ end
 # @param n length of a bitstring
 # @param ones number of ones in a bitstring
 # @return value S_lil
-function S_lil(n::Int64, ones::Int64)
+function S_lil(n::Integer, ones::Integer)
     S_star(n, ones) / sqrt(2 * log(log(n)))
 end
 
@@ -115,6 +155,27 @@ end
 # @return true if and only if given character is a white space.
 function isWhite(c::Char)
     return c == ' ' || c == '\n' || c == '\t' || c == '\r';
+end
+
+function boolVal(c::Char)
+    c != '0'
+end
+
+# Extracts 32-bit unsigned integer from a string of zeros and ones,
+# starting from index beg.
+# @param str string in which number is written.
+# @param beg index of the first character of a substring which codes a number.
+# @return number read.
+function readUint32(str::String, beg::Integer)
+    #println("readUint32 $beg")
+    v = 0
+    for i in 0:31
+        #print(str[beg+i])
+        if (boolVal(str[beg+i]))
+            v = v + (1 << i)
+        end
+    end
+    v
 end
 
 # Converts a string into 0-1 sequence of length.
@@ -127,15 +188,16 @@ function stringToBitArray(str::String)
     while (l > 0 && isWhite(str[l]))
         l = l-1
     end
-    arr = Array(Bool, l)
-    for i in 1:l
-        if (str[i] == '0')
-            arr[i] = 0
-        else
-            arr[i] = 1
-        end
+    if (mod(l, 32) != 0)
+        error("length of the string must be multiplicity of 32")
     end
-    return arr
+    n = div(l, 32)
+    data = Array(Uint32, n)
+    for i in 0:(n-1)
+        data[i+1] = readUint32(str, i*32 + 1)
+        println("stringToBitArray $(data[i+1])")
+    end
+    BitSeq(data)
 end
    
 end # module
