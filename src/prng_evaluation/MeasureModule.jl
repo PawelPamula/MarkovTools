@@ -44,7 +44,7 @@ function printMeasure(m::Measure)
         b = myRound(p[2], 3)
         s = sign(m.vals[i])
         v = myRound(abs(m.vals[i]), 5)
-        print("($a, $b) -> $v\n")
+        print("[$a, $b) -> $v\n")
     end
 end
 

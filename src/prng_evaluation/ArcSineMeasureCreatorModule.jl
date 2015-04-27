@@ -55,7 +55,7 @@ type ArcSineMeasureCreator
     
     # check points specify lengths of prefixes of given bit sequences.
     # Measure may be created using only a prefix, not whole sequence.
-    checkPoints::Array{Uint64, 1}
+    checkPoints::Array{Int64, 1}
     
     # number of check points (i.e. length of checkPoints)
     nrOfCheckPoints::Int64
@@ -66,14 +66,14 @@ type ArcSineMeasureCreator
     buckets::Array{Int64, 2}
     
     
-    function ArcSineMeasureCreator(checkPoints_::Array{Uint64, 1}, part_::Partition)
+    function ArcSineMeasureCreator(checkPoints_::Array{Int64, 1}, part_::Partition)
         this = new()
         this.checkPoints = copy(checkPoints_)
         this.part = copy(part_)
         this.nrOfSeqs = 0
         this.nrOfParts = length(this.part)
         this.nrOfCheckPoints = length(this.checkPoints)
-        this.buckets = Array(Uint64, this.nrOfCheckPoints, this.nrOfParts)
+        this.buckets = Array(Int64, this.nrOfCheckPoints, this.nrOfParts)
         for cp in 1:this.nrOfCheckPoints
             for p in 1:this.nrOfParts
                 this.buckets[cp, p] = 0

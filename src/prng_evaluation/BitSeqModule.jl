@@ -21,7 +21,7 @@ type BitSeq
     data::Array{Uint32, 1}
     
     # physical length of the array with data
-    dataL::Integer
+    dataL::Int64
     
     function BitSeq(data::Array{Uint32, 1})
         this = new()
@@ -40,7 +40,7 @@ function getNrOfBits(bits::BitSeq)
 end
 
 # Get ith bit in given bit sequence. Bits are indexed, as in Julia arrays, from 1.
-function get(bits::BitSeq, i::Integer)
+function get(bits::BitSeq, i::Int64)
     if (i < 1 || i > getNrOfBits(bits))
         error("Invalid bit index: $i")
     end
@@ -71,7 +71,8 @@ end
 # @param checkPoints check points as an array of ascending integers
 # @return number of of ones in each check points, as an array of
 #         of integers of the same length as checkpoints
-function countOnes(bits::BitSeq, checkPoints::Array{Uint64, 1})
+function countOnes(bits::BitSeq, checkPoints::Array{Int64, 1})
+    #println("countOnes $(getNrOfBits(bits))")
     n = getNrOfBits(bits)
     nrOfCheckPoints = length(checkPoints)
     if (n < checkPoints[nrOfCheckPoints])
@@ -82,7 +83,7 @@ function countOnes(bits::BitSeq, checkPoints::Array{Uint64, 1})
     ones[1] = 0
     cp = checkPoints[1]
     cp_ind = 1
-    for i in 1:n
+     for i in 1:n
         if get(bits, i) == 1
             ones[cp_ind] = ones[cp_ind] + 1
         end
@@ -95,12 +96,13 @@ function countOnes(bits::BitSeq, checkPoints::Array{Uint64, 1})
                 break
             end
         end
-    end
+     end
     ones
 end 
 
+
 # Counts fraction of time "above the line" for each checkpoint.
-function countFracs(bits::BitSeq, checkPoints::Array{Uint64, 1})
+function countFracs(bits::BitSeq, checkPoints::Array{Int64, 1})
     n = getNrOfBits(bits)
     nrOfCheckPoints = length(checkPoints)
     if (n < checkPoints[nrOfCheckPoints])
@@ -138,7 +140,7 @@ end
 # @param n length of a bitstring
 # @param ones number of ones in a bitstring
 # @return value S*
-function S_star(n::Integer, ones::Integer)
+function S_star(n::Int64, ones::Int64)
     (2*ones - n) / sqrt(n)
 end
 
@@ -146,7 +148,7 @@ end
 # @param n length of a bitstring
 # @param ones number of ones in a bitstring
 # @return value S_lil
-function S_lil(n::Integer, ones::Integer)
+function S_lil(n::Int64, ones::Int64)
     S_star(n, ones) / sqrt(2 * log(log(n)))
 end
 
@@ -166,9 +168,9 @@ end
 # @param str string in which number is written.
 # @param beg index of the first character of a substring which codes a number.
 # @return number read.
-function readUint32(str::String, beg::Integer)
+function readUint32(str::String, beg::Int64)
     #println("readUint32 $beg")
-    v = 0
+    v::Uint32 = 0
     for i in 0:31
         #print(str[beg+i])
         if (boolVal(str[beg+i]))
@@ -195,7 +197,7 @@ function stringToBitArray(str::String)
     data = Array(Uint32, n)
     for i in 0:(n-1)
         data[i+1] = readUint32(str, i*32 + 1)
-        println("stringToBitArray $(data[i+1])")
+        #println("stringToBitArray $(data[i+1])")
     end
     BitSeq(data)
 end
