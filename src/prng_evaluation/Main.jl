@@ -29,7 +29,6 @@ function main()
     partForAS = vcat( (-Inf, 0.0),  [(x, x+0.025) for x in linspace(0, 0.975, 40)], (1.0, Inf) )
     asmc = ASMC.ArcSineMeasureCreator(checkPoints, partForAS)
     
-    #@profile begin
     counter = 0
     for i in 1:nrOfStrings
         data = read(STDIN, Uint32, div(length,32))
@@ -41,7 +40,6 @@ function main()
             println("Julia: read $counter")
         end
     end
-    #end #@profile
     
     println("Making LIL measure...")
     lilEmpirical = LMC.makeMeasure(lmc, 1)
@@ -59,6 +57,8 @@ function main()
     println("\n\n\nASine Empirical:")
     MM.printMeasure(asEmpirical)
     
+    #MM.makeHistogram(asEmpirical)
+    
     tv_lil = MM.distTV(lilIdeal, lilEmpirical)
     hell_lil = MM.distHell(lilIdeal, lilEmpirical)
     rms_lil = MM.distRMS(lilIdeal, lilEmpirical)
@@ -72,7 +72,6 @@ function main()
     println("hellinger for AS = $hell_as")
     println("root mean square for AS = $rms_as")
     
-    Profile.print()
 end
 
 function newEcho()
@@ -142,6 +141,9 @@ function mainForTextData()
     println("root mean square for AS = $rms_as")
 end
 
-#println("Hello world!")
+#@profile begin
+
 main()
-#mainForTextData()
+
+#end
+#Profile.print()

@@ -1,12 +1,15 @@
 module MeasureModule
 
+#import PyPlot
+
 export  Partition,
         Measure,
         distTV,
         distHell,
         distRMS,
         defaultPart,
-        printMeasure
+        printMeasure,
+        makeHistogram
 
 # A partition is represented as an array of float pairs.
 # It must have the following form:
@@ -46,6 +49,10 @@ function printMeasure(m::Measure)
         v = myRound(abs(m.vals[i]), 5)
         print("[$a, $b) -> $v\n")
     end
+end
+
+function makeHistogram(m::Measure)
+    PyPlot.plt.hist(m.vals)
 end
 
 # Calculates total variation distance between to probability measures.

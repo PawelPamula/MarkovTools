@@ -1,0 +1,52 @@
+\documentclass[a4paper, 10pt]{article}
+\usepackage[left=3cm,right=3cm]{geometry}
+\usepackage[MeX]{polski}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath, amsthm, amssymb}
+
+\begin{document}
+
+\section{Testowanie PRNG (generatorów liczb pseudolosowych)}
+
+\paragraph{Uruchomienie programu.}
+Kody programu umieszczam na branchu prng\_evaluation. Program składa się z kilku modułów.
+Z perspektywy użytkownika istotne jest tylko, że punkt startowy programu jest w pliku \texttt{Main.jl}.
+Program wczytuje ze standardowego wejścia strumień bitów. Na standardowe wyjście (``normalnie'', tzn. tekstowo)
+wypisuje wyniki -- empirycznie wyznaczone miary oraz odległości (m.in. total variation distance) od tych miar, które wynikają z praw iterowanego logarytmu i arcusa sinusa,
+
+Na branchu znajduje się również program w C (plik \texttt{cprg\_bin.c}), wypisujący na standardowe wyjście binarny output ze standardowego generatora z C (tzn. funkcja \texttt{rand()}). Załómy, że skompilujemy ten program do pliku \texttt{cprg.out}. Program \texttt{cprg.out} wywołujemy z dwoma argumentami:
+\begin{itemize}
+ \item liczba ciągów do wygenerowania,
+ \item logarytm o podstawie dwa z długości generowanego ciągu.
+\end{itemize}
+Podsumowując, możemy przetestować PRNG z języka C wywołując z konsoli przykładowo
+
+\texttt{./cprg.out 1000 25 | julia Main.jl}
+
+\noindent W ten sposób testujemy generator na podstawie 1000 ciągów zawierających $2^{25}$ bitów.
+
+Podobnie można przetestować dowolny inny generator, pamiętając, że output musi być wypisywany w formacie opisanym poniżej.
+
+\paragraph{Testowanie własnych PRNG.}
+Z punktu widzenia osoby, która chce wykorzystać program do sprawdzenia swojego PRNG ważne jest co dokładnie ma się znaleźć w strumieniu wejściowym programu testującego. Format jest banalny:
+\begin{itemize}
+ \item Pierwsze 8 bajtów strumienia zawiera 64-bitowego integera \texttt{nrOfStrings} liczbę ciągów bitów.
+ \item Kolejne 8 bajtów zawiera 64-bitowego integera \texttt{length} oznaczającego długość pojedynczego ciągu.
+ \item Dalej następuje \texttt{nrOfStrings} * \texttt{length} / 8 bajtów danych.
+\end{itemize}
+Uwaga.
+\begin{itemize}
+ \item Program (przynajmniej póki co) nie sprawdza poprawności danych.
+ \item Nie ma żadnych ``specjalnych'' bitów oznaczających przerwy między ciągami, ani niczego podobnego. Po wczytaniu \texttt{length} bitów jednego ciągu, kolejny bit jest uważany za pierwszy bit następnego ciągu.
+ \item {Dla pełności opisu trzeba by powiedzieć czy liczby \texttt{nrOfStrings} i \texttt{length} są zapisane w kolejności big-endian czy little-endian.
+        Nie zastanawiałem się nad tym. W kodzie C robię
+    \texttt{fwrite(\&nrOfStrings, sizeof(int64), 1, stdout);}
+a w Julii
+    \texttt{nrOfStrings = read(STDIN, Int64)}
+i ``u mnie działa''. 
+ }
+\end{itemize}
+
+
+
+\end{document}
