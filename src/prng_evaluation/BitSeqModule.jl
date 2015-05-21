@@ -23,13 +23,45 @@ type BitSeq
     # physical length of the array with data
     dataL::Int64
     
+    wordIndex::Int64
+    
+    bitIndex::Int64
+    
+    tempWord::Uint32
+    
     function BitSeq(data::Array{Uint32, 1})
         this = new()
         this.dataL = length(data)
         this.data = data
+        this.wordIndex = 1;
+        this.bitIndex = 0;
+        this.tempWord = data[1];
         return this
     end
 end #type BitSeq
+
+function reset(bits::BitSeq)
+    bits.wordIndex = 1;
+    bits.bitIndex = 0;
+    bits.tempWord = bits.data[1];
+end
+
+function next(bits::BitSeq)
+    res = bits.tempWord & 1
+    if (bits.bitIndex < 31)
+        bits.bitIndex = bits.bitIndex + 1
+        bits.tempWord = bits.tempWord >> 1
+    else
+        bits.wordIndex = bits.wordIndex + 1
+        if (bits.wordIndex > bits.dataL)
+            reset(bits)
+        else
+            bits.bitIndex = 0;
+            bits.tempWord = bits.data[bits.wordIndex];
+        end
+    end
+    res
+end
 
 function getNrOfBytes(bits::BitSeq)
     bits.dataL * 4
@@ -56,6 +88,7 @@ end
 function countOnes(bits::BitSeq)
     n = getNrOfBits(bits)
     s = 0
+    reset(bits)
     for i in 1:n
         if get(bits, i) == 1
             s = s + 1
@@ -73,30 +106,24 @@ end
 #         of integers of the same length as checkpoints
 function countOnes(bits::BitSeq, checkPoints::Array{Int64, 1})
     #println("countOnes $(getNrOfBits(bits))")
-    n = getNrOfBits(bits)
-    nrOfCheckPoints = length(checkPoints)
+    n = getNrOfBits(bits) :: Int64
+    nrOfCheckPoints = length(checkPoints) :: Int64
     if (n < checkPoints[nrOfCheckPoints])
         error("countOnes: given bit sequence is to short.\nLast " *
               "checkpoint equals $(checkPoints[nrOfCheckPoints]) while sequence is of length $n")
     end
     ones = Array(Int64, nrOfCheckPoints)
-    ones[1] = 0
-    cp = checkPoints[1]
-    cp_ind = 1
-     for i in 1:n
-        if get(bits, i) == 1
-            ones[cp_ind] = ones[cp_ind] + 1
+    nrOfOnes = 0 :: Int64
+    prev_cp = 0
+    reset(bits)
+    for cp_ind in 1:nrOfCheckPoints
+        cp = checkPoints[cp_ind]
+        for i in (prev_cp+1):cp
+            nrOfOnes = nrOfOnes + next(bits) 
         end
-        if (i >= cp)
-            cp_ind = cp_ind + 1
-            if (cp_ind <= nrOfCheckPoints)
-                cp = checkPoints[cp_ind]
-                ones[cp_ind] = ones[cp_ind-1]
-            else
-                break
-            end
-        end
-     end
+        ones[cp_ind] = nrOfOnes
+        prev_cp = cp
+    end
     ones
 end 
 
