@@ -1,5 +1,10 @@
 module ArcSineMeasureCreatorModule
 
+export  makeArcSineMeasureU,
+        ArcSineMeasureCreator,
+        #addSeq,
+        makeMeasure
+        
 using MeasureModule
 using BitSeqModule
 
@@ -66,24 +71,31 @@ type ArcSineMeasureCreator
     buckets::Array{Int64, 2}
     
     
-    function ArcSineMeasureCreator(checkPoints_::Array{Int64, 1}, part_::Partition)
+    function ArcSineMeasureCreator(part_::Partition)
         this = new()
-        this.checkPoints = copy(checkPoints_)
+        this.checkPoints = Array(Int64, 0)
         this.part = copy(part_)
         this.nrOfSeqs = 0
         this.nrOfParts = length(this.part)
-        this.nrOfCheckPoints = length(this.checkPoints)
-        this.buckets = Array(Int64, this.nrOfCheckPoints, this.nrOfParts)
-        for cp in 1:this.nrOfCheckPoints
-            for p in 1:this.nrOfParts
-                this.buckets[cp, p] = 0
-            end
-        end        
         return this
     end
 end
-        
-addSeq = function(amc::ArcSineMeasureCreator, bits::BitSeq)     
+    
+function initCheckPoints(amc::ArcSineMeasureCreator, checkPoints)
+    if length(amc.checkPoints) != 0
+        error("ArcSineMeasureCreator::initCheckPoints check points already initiated")
+    end
+    amc.checkPoints = copy(checkPoints)
+    amc.nrOfCheckPoints = length(amc.checkPoints)
+    amc.buckets = Array(Int64, amc.nrOfCheckPoints, amc.nrOfParts)
+    for cp in 1:amc.nrOfCheckPoints
+        for p in 1:amc.nrOfParts
+            amc.buckets[cp, p] = 0
+        end
+    end            
+end
+
+function addSeq(amc::ArcSineMeasureCreator, bits::BitSeq)     
     amc.nrOfSeqs = amc.nrOfSeqs + 1
     fracs = countFracs(bits, amc.checkPoints)            
     for cp_ind in 1:amc.nrOfCheckPoints
@@ -92,7 +104,7 @@ addSeq = function(amc::ArcSineMeasureCreator, bits::BitSeq)
     end
 end
 
-addToBucket = function(amc, cp_ind, frac)
+function addToBucket(amc, cp_ind, frac)
     for i in 1:amc.nrOfParts
         p = amc.part[i]
         if (p[1] <= frac < p[2])
@@ -103,7 +115,7 @@ addToBucket = function(amc, cp_ind, frac)
     error("Appriopriate interval not found!!");
 end
 
-makeMeasure = function(amc, cp_ind)
+function makeMeasure(amc, cp_ind)
     n = length(amc.part)
     vals = zeros(Float64, n)
     for i in 1:n

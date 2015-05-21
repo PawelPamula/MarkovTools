@@ -3,6 +3,7 @@ module LilMeasureCreatorModule
 export  lilMeasureU,
         makeLilMeasureU,
         LilMeasureCreator,
+        initCheckPoints,
         addSeq,
         makeMeasure
     
@@ -80,31 +81,41 @@ type LilMeasureCreator
     # This array is updated as new sequences appear. It is later used to create a measure.
     buckets::Array{Int64, 2}
     
-    function LilMeasureCreator(checkPoints_::Array{Int64, 1})
-        return LilMeasureCreator(checkPoints_, defaultPart)
+    function LilMeasureCreator()
+        return LilMeasureCreator(defaultPart)
     end
     
-    function LilMeasureCreator(checkPoints_::Array{Int64, 1}, part_::Partition)
+    function LilMeasureCreator(part_::Partition)
         this = new()
-        this.checkPoints = copy(checkPoints_)
+        this.checkPoints = Array(Int64,0)
         this.part = copy(part_)
         this.nrOfSeqs = 0
         this.nrOfParts = length(this.part)
-        this.nrOfCheckPoints = length(this.checkPoints)
-        this.buckets = Array(Int64, this.nrOfCheckPoints, this.nrOfParts)
-        for cp in 1:this.nrOfCheckPoints
-            for p in 1:this.nrOfParts
-                this.buckets[cp, p] = 0
-            end
-        end        
         return this
     end
 end
 
+function initCheckPoints(lmc::LilMeasureCreator, checkPoints)
+    if length(lmc.checkPoints) != 0
+        error("LilMeasureCreator::initCheckPoints check points already initiated")
+    end
+    lmc.checkPoints = copy(checkPoints)
+    lmc.nrOfCheckPoints = length(lmc.checkPoints)
+    lmc.buckets = Array(Int64, lmc.nrOfCheckPoints, lmc.nrOfParts)
+    for cp in 1:lmc.nrOfCheckPoints
+        for p in 1:lmc.nrOfParts
+            lmc.buckets[cp, p] = 0
+        end
+    end            
+end
 
+function dummyCountOnes(bits, checkPoints)
+    zeros(Int64, length(checkPoints))
+end
         
-addSeq = function(lmc::LilMeasureCreator, bits::BitSeq)  
+function addSeq(lmc::LilMeasureCreator, bits::BitSeq)  
     lmc.nrOfSeqs = lmc.nrOfSeqs + 1
+    #ones = dummyCountOnes(bits, lmc.checkPoints)      
     ones = countOnes(bits, lmc.checkPoints)          
     #println("LMC.addSeq $ones")
     for cp_ind in 1:lmc.nrOfCheckPoints
@@ -113,7 +124,7 @@ addSeq = function(lmc::LilMeasureCreator, bits::BitSeq)
     end
 end
 
-addToBucket = function(lmc, cp_ind, val)
+function addToBucket(lmc, cp_ind, val)
     for i in 1:lmc.nrOfParts
         p = lmc.part[i]
         if (p[1] <= val < p[2])
@@ -124,7 +135,7 @@ addToBucket = function(lmc, cp_ind, val)
     error("Appriopriate interval not found!!");
 end
 
-makeMeasure = function(lmc, cp_ind)
+function makeMeasure(lmc, cp_ind)
     n = length(lmc.part)
     vals = zeros(Float64, n)
     for i in 1:n

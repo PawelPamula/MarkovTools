@@ -59,7 +59,7 @@ end
 # @param u the first probability measure
 # @param v the other probability measure
 # @return total variation distance between given measures
-distTV = function(u::Measure, v::Measure)
+function distTV(u::Measure, v::Measure)
     if u.part != v.part
         throw("Measures operate on different partitions")
     end
@@ -74,7 +74,7 @@ distTV = function(u::Measure, v::Measure)
     return d
 end
 
-distHell = function(u::Measure, v::Measure)
+function distHell(u::Measure, v::Measure)
     if u.part != v.part
         throw("Measures operate on different partitions")
     end
@@ -89,7 +89,7 @@ distHell = function(u::Measure, v::Measure)
 end
 
 
-distRMS = function(u::Measure, v::Measure)
+function distRMS(u::Measure, v::Measure)
     if u.part != v.part
         throw("Measures operate on different partitions")
     end
