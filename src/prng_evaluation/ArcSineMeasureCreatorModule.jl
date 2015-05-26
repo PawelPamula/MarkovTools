@@ -2,7 +2,8 @@ module ArcSineMeasureCreatorModule
 
 export  makeArcSineMeasureU,
         ArcSineMeasureCreator,
-        #addSeq,
+        initCheckPoints,
+        addSeq,
         makeMeasure
         
 using MeasureModule

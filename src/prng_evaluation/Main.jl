@@ -18,6 +18,7 @@ function main()
         creator = ArcSineMeasureCreator(partForAS)
     else
         println("Unknown measure type: $(ARGS[1])")
+        return
     end
     
     readAllBits(creator)

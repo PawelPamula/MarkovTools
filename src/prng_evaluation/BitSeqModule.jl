@@ -162,6 +162,32 @@ function countFracs(bits::BitSeq, checkPoints::Array{Int64, 1})
     fracs
 end 
 
+function countFracs(bits::BitSeq, checkPoints::Array{Int64, 1})
+    #println("countOnes $(getNrOfBits(bits))")
+    n = getNrOfBits(bits) :: Int64
+    nrOfCheckPoints = length(checkPoints) :: Int64
+    if (n < checkPoints[nrOfCheckPoints])
+        error("countOnes: given bit sequence is to short.\nLast " *
+              "checkpoint equals $(checkPoints[nrOfCheckPoints]) while sequence is of length $n")
+    end
+    fracs = Array(Float64, nrOfCheckPoints)
+    prevBalance = 0 :: Int64
+    balance = 0 :: Int64
+    aboveTheLine = 0 :: Int64
+    prev_cp = 0 :: Int64
+    reset(bits)
+    for cp_ind in 1:nrOfCheckPoints
+        cp = checkPoints[cp_ind]
+        for i in (prev_cp+1):cp
+            prevBalance = balance
+            balance = balance - 1 + 2 * next(bits)
+            aboveTheLine = aboveTheLine + (balance > 0 || prevBalance > 0 ? 1 : 0);
+        end
+        fracs[cp_ind] = aboveTheLine / cp
+        prev_cp = cp
+    end
+    fracs
+end 
 
 # Calculates values S* as defined in [1].
 # @param n length of a bitstring
