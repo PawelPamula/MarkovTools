@@ -1,51 +1,97 @@
 
 using BitSeqModule
 using MeasureModule
-using LilMeasureCreatorModule
-using ArcSineMeasureCreatorModule
+using TestInvokerModule
+using MeasureCreatorModule
+using ResultSetModule
 
 function main()
     println("Entering main()")
-    if (length(ARGS) != 1)
-        println("Usage: julia Main.jl [lil|asin]")
-        return
-    end
     
-    partForAS = vcat( (-Inf, 0.0),  [(x, x+0.025) for x in linspace(0, 0.975, 40)], (1.0, Inf) )
-    if (ARGS[1] == "lil")
-        creator = LilMeasureCreator()
-    elseif (ARGS[1] == "asin")
-        creator = ArcSineMeasureCreator(partForAS)
-    else
-        println("Unknown measure type: $(ARGS[1])")
-        return
-    end
+    testType, nrOfCheckPoints, pathToFile = getCommandLineArgs()
     
-    readAllBits(creator)
+    nrOfStrings, length = getDataSize()
+    println("Julia: nrOfStrings = $nrOfStrings\nJulia: length = $length");
+    loglen = convert(Int64, floor(log2(length)))
+    println("Julia: typeof(loglen) = $(typeof(loglen))");
     
-    println("Making measure...")
-    measure = makeMeasure(creator, 1)
-    ideal = makeIdealMeasure(creator)
+    checkPoints, checkPointsLabels = makeCheckPoints(nrOfCheckPoints, loglen)
+    println("Julia: checkPoints = $checkPoints\nlabels = $checkPointsLabels");
+    
+    invoker = TestInvoker(getTestFunction(testType), checkPoints, checkPointsLabels)
+    file = open(pathToFile, "w")
+    setFileHandle(invoker, file)
+    readAllBits(invoker, nrOfStrings, length)    
+    close(file)
+    
+    println("dupa 1")
+    part = makePartition(testType, 42)
+    println("dupa 2")
+    ideal = getIdealMeasure(testType, part, length)
+    println("dupa 3")
+    mc = MeasureCreator(part, invoker.results)
+    measure = makeMeasure(mc, nrOfCheckPoints+1)
+    println("dupa 4")
     printSummary(measure, ideal)
 end
 
-
-function readAllBits(creator)
-    println("Entering readAllBits()")
+function getCommandLineArgs()
+    if (length(ARGS) < 1 || length(ARGS) > 3)
+        error("Usage: julia Main.jl [lil|asin] [nrOfCheckPoints] [pathToFile]")
+    end
     
+    if (length(ARGS) == 1)
+        return ARGS[1], 0, "tmp.txt"
+    end
+    
+    nrOfCheckPoints = parse(ARGS[2])
+    if (typeof(nrOfCheckPoints) != Int || nrOfCheckPoints < 0)
+        error("Usage: julia Main.jl [lil|asin] {nrOfCheckPoints}")
+    end
+    
+    if (length(ARGS) == 2)
+        return ARGS[1], nrOfCheckPoints, "tmp.txt"
+    end
+    
+    return ARGS[1], nrOfCheckPoints, ARGS[3]
+end
+
+
+function getDataSize()
     nrOfStrings = read(STDIN, Int64)
     length = read(STDIN, Int64)
-    println("Julia: nrOfStrings = $nrOfStrings\nJulia: length = $length");
-    
-    checkPoints = [length]
-    initCheckPoints(creator, checkPoints)
+    return nrOfStrings, length
+end
+
+function makeCheckPoints(nrOfCheckPoints, loglen)
+    checkPoints = zeros(Int64, nrOfCheckPoints+1)
+    checkPointsLabels = Array(String, nrOfCheckPoints+1)
+    for i in 0:nrOfCheckPoints
+        checkPoints[i+1] = 2 ^ (loglen - nrOfCheckPoints + i)
+        checkPointsLabels[i+1] = "2^$(loglen - nrOfCheckPoints + i)"
+    end
+    return checkPoints, checkPointsLabels
+end
+
+function getTestFunction(testType)
+    if (testType == "lil")
+        return countOnes
+    elseif (testType == "asin")
+        return countFracs
+    else
+        error("Unknown test type: $testType")
+    end
+end
+
+function readAllBits(invoker, nrOfStrings, length)
+    println("Entering readAllBits()")
     
     counter = 0
     for i in 1:nrOfStrings
         data = read(STDIN, Uint32, div(length,32))
         bits = BitSeq(data)
         #println("readAllBits $i")
-        addSeq(creator, bits)
+        addSeq(invoker, bits)
         counter = counter + 1
         if (counter % 10 == 0)
             println("Julia: read $counter")
@@ -53,16 +99,24 @@ function readAllBits(creator)
     end    
 end
 
-function makeIdealMeasure(creator::LilMeasureCreator)
-    cp = creator.checkPoints
-    n = creator.nrOfCheckPoints
-    makeLilMeasureU(cp[n])
+function makePartition(testType, nrOfParts)
+    if (testType == "lil")
+        return makePartitionForLil(nrOfParts)
+    elseif (testType == "asin")
+        return makePartitionForAsin(nrOfParts)
+    else
+        error("Unknown test type: $testType")
+    end
 end
-
-function makeIdealMeasure(creator::ArcSineMeasureCreator)
-    cp = creator.checkPoints
-    n = creator.nrOfCheckPoints
-    makeArcSineMeasureU(cp[n], creator.part)
+    
+function getIdealMeasure(testType::String, part::Partition, length::Int64)
+    if (testType == "lil")
+        return makeIdealLilMeasure(length, part)
+    elseif (testType == "asin")
+        return makeIdealAsinMeasure(length, part)
+    else
+        error("Unknown test type: $testType")
+    end
 end
 
 function printSummary(measure, ideal)   
