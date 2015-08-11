@@ -50,7 +50,7 @@ function addSeq(ti::TestInvoker, bits::BitSeq)
     if (ti.writeToFile)
         write(ti.fileHandle, join(res, "; "))
         write(ti.fileHandle, "\n")
-        flush(fileHandle)
+        flush(ti.fileHandle)
     end
 end
 
