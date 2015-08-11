@@ -1,0 +1,8 @@
+results/
+someCrap/
+
+.directory
+tmp.txt
+
+# programs' binaries
+*.bin
