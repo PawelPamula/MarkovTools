@@ -49,7 +49,7 @@ end
 
 
 function getColumn(resset::ResultSet, column::Int64)
-    println("getColumn")
+    #println("getColumn")
     n = resset.nrOfRows
     res = Array(Float64, n)
     for i in 1:n

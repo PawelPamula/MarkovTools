@@ -37,7 +37,7 @@ type MeasureCreator
 end
 
 function initBuckets(mc::MeasureCreator)
-    println("initBuckets")
+    #println("initBuckets")
     cols = getNrOfColumns(mc.results)
     mc.buckets = Array(Int64, cols, mc.nrOfParts)
     for cp in 1:cols
@@ -60,7 +60,7 @@ function addToBucket(mc::MeasureCreator, cp_ind::Int64, val::Float64)
 end
 
 function fillBuckets(mc::MeasureCreator)
-    println("fillBuckets")
+    #println("fillBuckets")
     n = getNrOfRows(mc.results)
     for cp in 1:getNrOfColumns(mc.results)
         vals = getColumn(mc.results, cp)
@@ -71,11 +71,11 @@ function fillBuckets(mc::MeasureCreator)
 end
 
 function makeMeasure(mc::MeasureCreator, cp_ind::Int64)
+    println("Making measure...")
     if (length(mc.buckets) == 0)
         initBuckets(mc)
         fillBuckets(mc)
     end
-    println("Making measure...")
     n = mc.nrOfParts
     nrOfSeqs = getNrOfRows(mc.results)
     vals = zeros(Float64, n)

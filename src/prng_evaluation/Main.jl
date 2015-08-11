@@ -24,14 +24,10 @@ function main()
     readAllBits(invoker, nrOfStrings, length)    
     close(file)
     
-    println("dupa 1")
     part = makePartition(testType, 42)
-    println("dupa 2")
     ideal = getIdealMeasure(testType, part, length)
-    println("dupa 3")
     mc = MeasureCreator(part, invoker.results)
     measure = makeMeasure(mc, nrOfCheckPoints+1)
-    println("dupa 4")
     printSummary(measure, ideal)
 end
 
