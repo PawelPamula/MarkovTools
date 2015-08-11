@@ -37,6 +37,7 @@ function setFileHandle(ti::TestInvoker, fileHandle::IOStream)
     ti.writeToFile = true
     write(fileHandle, join(ti.checkPointsLabels, "; "))
     write(fileHandle, "\n")
+    flush(fileHandle)
 end
 
 function resetFileHandle(ti::TestInvoker)
@@ -49,6 +50,7 @@ function addSeq(ti::TestInvoker, bits::BitSeq)
     if (ti.writeToFile)
         write(ti.fileHandle, join(res, "; "))
         write(ti.fileHandle, "\n")
+        flush(fileHandle)
     end
 end
 
