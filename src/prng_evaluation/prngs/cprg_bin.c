@@ -7,17 +7,34 @@ typedef unsigned int uint32;
 const size_t intSize = 8 * sizeof(int);
 const int maxRandBitIndex = 30;
 int curr_seed;
+FILE* seeds = 0;
+char trash[1000];
 
+int getNextIntFromFile()
+{
+    int val;
+    fscanf(seeds, "%d", &val);
+    //fgets(trash, 1000, seeds); // usuniecie znaku nowej lini
+    return val;
+}
 
 void initSeed(void)
 {
-    curr_seed = 112358;
+    if (seeds)
+        curr_seed = getNextIntFromFile() + 1000000001; // seeds in file are from range [-10^9, 10^9]
+    else
+        curr_seed = 112358;
     srand(curr_seed);
 }
 
 void nextSeed(void)
 {
-    srand(++curr_seed);
+    if (seeds)
+        curr_seed = getNextIntFromFile() + 1000000001;
+    else
+        curr_seed++;
+        printf("%d\n", curr_seed);
+    srand(curr_seed);
 }
 
 int64 myPow(int64 a, uint32 b)
@@ -69,10 +86,20 @@ int main(int argc, char** argv)
 {
     if (argc < 3)
     {
-        printf("Usage: cprg [number of strings] [log2 of length]\n");
+        printf("Usage: cprg [number of strings | pathToSeeds] [log2 of length]\n");
         return 0;
     }
     int64 nrOfStrings = atoi(argv[1]);
+    if (nrOfStrings == 0)
+    {
+        seeds = fopen(argv[1], "r");
+        if (!seeds)
+        {
+            printf("Couldn't open %s\n", argv[1]);
+            return 1;
+        }
+        nrOfStrings = getNextIntFromFile();
+    }
     uint32 logLength = atoi(argv[2]);
     int64 length = myPow(2LL, logLength);
     
@@ -87,8 +114,11 @@ int main(int argc, char** argv)
         
         generateString(length);
         //simulate(length);
-        nextSeed();
+        if (i < nrOfStrings-1)
+            nextSeed();
     }
+    if (seeds)
+        fclose(seeds);
     
     return 0;
 }
