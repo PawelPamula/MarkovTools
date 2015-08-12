@@ -25,6 +25,7 @@ function main()
     close(file)
     
     part = makePartition(testType, 42)
+    println("All bits read...")
     ideal = getIdealMeasure(testType, part, length)
     pres = ResultPresenter(invoker.results, ideal)
     init(pres, part)
@@ -71,7 +72,7 @@ end
 
 function getTestFunction(testType)
     if (testType == "lil")
-        return countOnes
+        return calcSlilVal
     elseif (testType == "asin")
         return countFracs
     else

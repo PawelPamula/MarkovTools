@@ -6,6 +6,7 @@ export  BitSeq,
         get,
         countOnes,
         countFracs,
+        calcSlilVal,
         S_star,
         S_lil,
         stringToBitArray
@@ -127,6 +128,15 @@ function countOnes(bits::BitSeq, checkPoints::Array{Int64, 1})
     ones
 end 
 
+function calcSlilVal(bits::BitSeq, checkPoints::Array{Int64, 1})
+    nrOfCheckPoints = length(checkPoints) :: Int64
+    res = Array(Float64, nrOfCheckPoints)
+    ones = countOnes(bits, checkPoints)
+    for i in 1:nrOfCheckPoints
+        res[i] = S_lil(checkPoints[i], ones[i])
+    end
+    return res
+end
 
 # Counts fraction of time "above the line" for each checkpoint.
 function countFracs(bits::BitSeq, checkPoints::Array{Int64, 1})

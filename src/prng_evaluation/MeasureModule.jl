@@ -1,7 +1,5 @@
 module MeasureModule
 
-#import PyPlot
-
 export  Partition,
         Measure,
         printMeasure,
@@ -14,6 +12,8 @@ export  Partition,
         distTV,
         distHell,
         distRMS
+
+using Distributions
 
 # A partition is represented as an array of float pairs.
 # It must have the following form:
