@@ -49,7 +49,7 @@ function init(pres :: ResultPresenter, part :: Partition)
     return 
 end
 
-function displayLine(pres :: ResultPresenter, words :: Array{ASCIIString, 1})
+function displayLine(pres :: ResultPresenter, words)
     wordSize = pres.digits + 3
     balance = 0
     n = length(words)

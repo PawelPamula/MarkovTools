@@ -13,7 +13,7 @@ export  Partition,
         distHell,
         distRMS
 
-using Distributions
+#using Distributions
 
 # A partition is represented as an array of float pairs.
 # It must have the following form:
