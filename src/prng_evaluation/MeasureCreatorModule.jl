@@ -71,7 +71,7 @@ function fillBuckets(mc::MeasureCreator)
 end
 
 function makeMeasure(mc::MeasureCreator, cp_ind::Int64)
-    println("Making measure...")
+    println("Making measure $cp_ind...")
     if (length(mc.buckets) == 0)
         initBuckets(mc)
         fillBuckets(mc)

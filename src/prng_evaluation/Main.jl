@@ -2,8 +2,8 @@
 using BitSeqModule
 using MeasureModule
 using TestInvokerModule
-using MeasureCreatorModule
 using ResultSetModule
+using ResultPresenterModule
 
 function main()
     println("Entering main()")
@@ -26,9 +26,9 @@ function main()
     
     part = makePartition(testType, 42)
     ideal = getIdealMeasure(testType, part, length)
-    mc = MeasureCreator(part, invoker.results)
-    measure = makeMeasure(mc, nrOfCheckPoints+1)
-    printSummary(measure, ideal)
+    pres = ResultPresenter(invoker.results, ideal)
+    init(pres, part)
+    present(pres)
 end
 
 function getCommandLineArgs()
@@ -89,7 +89,7 @@ function readAllBits(invoker, nrOfStrings, length)
         #println("readAllBits $i")
         addSeq(invoker, bits)
         counter = counter + 1
-        if (counter % 10 == 0)
+        if (counter % 100 == 0)
             println("Julia: read $counter")
         end
     end    
