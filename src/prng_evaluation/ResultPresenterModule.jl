@@ -11,7 +11,7 @@ using ResultSetModule
 type ResultPresenter
     results :: ResultSet
     
-    idealMeasure :: Measure
+    idealMeasures :: Array{Measure, 1}
     
     empMeasures :: Array{Measure, 1}
     
@@ -21,10 +21,10 @@ type ResultPresenter
     
     digits :: Int
     
-    function ResultPresenter(rset :: ResultSet, idealMeasure :: Measure)
+    function ResultPresenter(rset :: ResultSet, idealMeasures :: Array{Measure, 1})
         this = new()
         this.results = rset
-        this.idealMeasure = idealMeasure
+        this.idealMeasures = idealMeasures
         this.sep = "; "
         this.linesep = "\n"
         this.digits = 4
@@ -35,7 +35,7 @@ end # type ResultPresenter
 function setDisplay(pres :: ResultPresenter, sep :: String, linesep :: String, digits :: Int)
     pres.sep = "; "
     pres.linesep = "\n"
-    pres.digits = 4
+    pres.digits = digits
 end
 
 function init(pres :: ResultPresenter, part :: Partition)
@@ -83,7 +83,7 @@ function calcDists(pres :: ResultPresenter, dist :: Function)
     n = getNrOfColumns(pres.results)
     dists = Array(Float64, n)
     for i in 1:n
-        dists[i] = dist(pres.empMeasures[i], pres.idealMeasure)
+        dists[i] = dist(pres.empMeasures[i], pres.idealMeasures[i])
     end
     return dists
 end

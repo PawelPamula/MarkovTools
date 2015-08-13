@@ -9,11 +9,13 @@ export  Partition,
         makePartitionForAsin,
         makeIdealLilMeasure,
         makeIdealAsinMeasure,
+        makeIdealLilMeasures,
+        makeIdealAsinMeasures,
         distTV,
         distHell,
         distRMS
 
-#using Distributions
+using Distributions
 
 # A partition is represented as an array of float pairs.
 # It must have the following form:
@@ -125,6 +127,15 @@ function makeIdealAsinMeasure(n::Int64, part::Partition)
     Measure(part, vals)
 end
 
+function makeIdealAsinMeasures(lengths::Array{Int64, 1}, part::Partition)
+    n = length(lengths)
+    ms = Array(Measure, n)
+    for i in 1:n
+        ms[i] = makeIdealAsinMeasure(lengths[i], part)
+    end
+    ms
+end
+
 
 # Function corresponding to \mu^U_n from [1].
 # @param n length of a bit sequence
@@ -141,12 +152,21 @@ end
 # @param n length of bit sequence
 # @param part partition on which Measure object is defined
 # @return Measure object corresponding to \mu^U_n
-function makeIdealLilMeasure(n::Int64, part::Partition = defaultPart)
+function makeIdealLilMeasure(n::Int64, part::Partition)
     vals = zeros(Float64, length(part))
     for i in 1:length(part)
         vals[i] = lilMeasureIdeal(n, part[i][1], part[i][2])
     end
     Measure(part, vals)
+end
+
+function makeIdealLilMeasures(lengths::Array{Int64, 1}, part::Partition)
+    n = length(lengths)
+    ms = Array(Measure, n)
+    for i in 1:n
+        ms[i] = makeIdealLilMeasure(lengths[i], part)
+    end
+    ms
 end
 
 

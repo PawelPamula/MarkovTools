@@ -8,13 +8,12 @@ function main()
     testType, loglen, pathToFile = getCommandLineArgs()
     length = 2^loglen
     
-    pair = readdlm("tmp.txt", ';'; header=true)
+    pair = readdlm(pathToFile, ';'; header=true)
     rset = ResultSet(vec(pair[2]))
     fillResultSet(rset, pair[1])
     
     part = makePartition(testType, 42)
-    length = 1000500100900
-    ideal = getIdealMeasure(testType, part, length)
+    ideal = getIdealMeasures(testType, part, [(length-getNrOfColumns(rset)+1):length])
     pres = ResultPresenter(rset, ideal)
     init(pres, part)
     present(pres)
@@ -65,11 +64,11 @@ function makePartition(testType, nrOfParts)
     end
 end
     
-function getIdealMeasure(testType::String, part::Partition, length::Int64)
+function getIdealMeasures(testType::String, part::Partition, lengths::Array{Int64, 1})
     if (testType == "lil")
-        return makeIdealLilMeasure(length, part)
+        return makeIdealLilMeasures(lengths, part)
     elseif (testType == "asin")
-        return makeIdealAsinMeasure(length, part)
+        return makeIdealAsinMeasures(lengths, part)
     else
         error("Unknown test type: $testType")
     end

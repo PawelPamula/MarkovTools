@@ -26,8 +26,8 @@ function main()
     
     part = makePartition(testType, 42)
     println("All bits read...")
-    ideal = getIdealMeasure(testType, part, length)
-    pres = ResultPresenter(invoker.results, ideal)
+    idealMeasures = getIdealMeasures(testType, part, [(length-nrOfCheckPoints):length])
+    pres = ResultPresenter(invoker.results, idealMeasures)
     init(pres, part)
     present(pres)
 end
@@ -90,7 +90,7 @@ function readAllBits(invoker, nrOfStrings, length)
         #println("readAllBits $i")
         addSeq(invoker, bits)
         counter = counter + 1
-        if (counter % 100 == 0)
+        if (counter % 10 == 0)
             println("Julia: read $counter")
         end
     end    
@@ -106,11 +106,11 @@ function makePartition(testType, nrOfParts)
     end
 end
     
-function getIdealMeasure(testType::String, part::Partition, length::Int64)
+function getIdealMeasures(testType::String, part::Partition, lengths::Array{Int64, 1})
     if (testType == "lil")
-        return makeIdealLilMeasure(length, part)
+        return makeIdealLilMeasures(lengths, part)
     elseif (testType == "asin")
-        return makeIdealAsinMeasure(length, part)
+        return makeIdealAsinMeasures(lengths, part)
     else
         error("Unknown test type: $testType")
     end
