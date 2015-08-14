@@ -88,9 +88,17 @@ function calcDists(pres :: ResultPresenter, dist :: Function)
     return dists
 end
 
+function flip(f :: Function)
+    function(a,b)
+        f(b,a)
+    end
+end
+
 function makeTable(pres :: ResultPresenter)
     rset = ResultSet(pres.results.header)
     addResult(rset, calcDists(pres, distTV), "tv")
+    addResult(rset, calcDists(pres, distSep), "sep1")
+    addResult(rset, calcDists(pres, flip(distSep)), "sep2")
     addResult(rset, calcDists(pres, distHell), "hell")
     addResult(rset, calcDists(pres, distRMS), "rms")
     return rset

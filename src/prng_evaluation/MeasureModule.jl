@@ -12,6 +12,7 @@ export  Partition,
         makeIdealLilMeasures,
         makeIdealAsinMeasures,
         distTV,
+        distSep,
         distHell,
         distRMS
 
@@ -219,6 +220,39 @@ function distRMS(u::Measure, v::Measure)
         s = s + (x - y)^2
     end
     return sqrt(s/n)
+end
+
+function maximum(arr::Array{Float64, 1})
+    m = -Inf
+    n = length(arr)
+    for i in 1:n
+        m = arr[i] > m ? arr[i] : m
+    end
+    return m
+end
+
+function distSep(u::Measure, v::Measure)
+    if u.part != v.part
+        throw("Measures operate on different partitions")
+    end
+    isZero = function(x)
+        return abs(x) < 0.0000001
+    end
+    fun = function(x, y)
+        if (isZero(y))
+            if (isZero(x)) return 0.0
+            else return 1.0
+            end
+        else
+            return 1.0 - x / y
+        end
+    end
+    n = length(u.part)
+    arr = Array(Float64, n)
+    for i in 1:n
+        arr[i] = fun(u.vals[i], v.vals[i])
+    end
+    return maximum(arr)
 end
 
 end # module
