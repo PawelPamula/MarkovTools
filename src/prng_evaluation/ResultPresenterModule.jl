@@ -105,6 +105,8 @@ function makeTable(pres :: ResultPresenter)
 end
 
 function present(pres :: ResultPresenter)
+    printMeasure(pres.idealMeasures[getNrOfColumns(pres.results)])
+    printMeasure(pres.empMeasures[getNrOfColumns(pres.results)])
     rset = makeTable(pres)
     displayResultSet(pres, rset)
 end

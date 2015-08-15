@@ -129,6 +129,16 @@ public:
     {
     }
     
+    GeneratorInvoker(const GeneratorInvoker&) = delete;
+    
+    ~GeneratorInvoker()
+    {
+        if (seeds)
+            fclose(seeds);
+    }
+    
+    GeneratorInvoker& operator=(const GeneratorInvoker&) = delete;
+    
     void setPRNG(PRNG& prng)
     {
         this->prng = shared_ptr<PRNG>(&prng);
@@ -139,6 +149,16 @@ public:
         this->prng = prng;
     }
     
+    void setPathToSeeds(char* pathToFile)
+    {
+        seeds = fopen(pathToFile, "r");
+        if (!seeds)
+        {
+            printf("Couldn't open %s\n", pathToFile);
+            exit(1);
+        }
+    }
+    
     void run(int64 nrOfStrings, int64 length)
     {
         fprintf(stderr, "GeneratorInvoker::run(%lld, %lld)\n", nrOfStrings, length);
@@ -147,7 +167,7 @@ public:
         fwrite(&length, sizeof(int64), 1, stdout);
         for (int64 i = 1; i <= nrOfStrings; ++i)
         {
-            prng->setSeed(i);
+            prng->setSeed(nextSeed());
             if (i % 100 == 0)
                 fprintf(stderr, "Generator: %lld/%lld\n", i, nrOfStrings);
             generateString(length);
@@ -155,14 +175,20 @@ public:
         fclose(stdout);
     }
     
+    void run(int64 length)
+    {
+        int nrOfStrings = getNextIntFromFile();
+        run(nrOfStrings, length);
+    }
     
 private:
     shared_ptr<PRNG> prng;
+    FILE* seeds = 0;
     
     static char getByte(uint32 n, uint32 byteNr)
     {
         n = n >> (byteNr * 8);
-        return static_cast<char>(n & 255);
+        return static_cast<char>(n & 255u);
     }
     
     void generateString(int64 nrOfBits)
@@ -178,11 +204,27 @@ private:
         }
     }
     
+    int nextSeed()
+    {
+        static int def_first_seed = 112358;
+        
+        if (seeds)
+            return getNextIntFromFile() + 1000000001;
+        else
+            return def_first_seed++;
+    }
+    
+    int getNextIntFromFile()
+    {
+        int val;
+        fscanf(seeds, "%d", &val);
+        return val;
+    }
 };
 
 void wrongArgs(int argc, char** argv)
 {
-        printf("Usage: %s [prng name] [number of strings] [log2 of length]\n", argv[0]);
+        printf("Usage: %s [prng name] [number of strings | path to seeds] [log2 of length]\n", argv[0]);
         exit(0);
 }
 
@@ -217,7 +259,7 @@ int64 myPow(int64 a, uint32 b)
 
 int main(int argc, char** argv)
 {
-    if (argc < 4)
+    if (argc != 4)
         wrongArgs(argc, argv);
     
     shared_ptr<PRNG> prng = getPRNG(argv[1]);
@@ -228,11 +270,19 @@ int main(int argc, char** argv)
     }
     int64 nrOfStrings = atoi(argv[2]);
     uint32 logLength = atoi(argv[3]);
-    if (logLength <= 0 || nrOfStrings <= 0)
+    if (logLength <= 0)
         wrongArgs(argc, argv);
     int64 length = myPow(2LL, logLength);
     
     GeneratorInvoker gi(prng);
-    gi.run(nrOfStrings, length);
+    if (nrOfStrings <= 0)
+    {
+        gi.setPathToSeeds(argv[2]);
+        gi.run(length);
+    }
+    else
+    {
+        gi.run(nrOfStrings, length);
+    }
     return 0;
 }
