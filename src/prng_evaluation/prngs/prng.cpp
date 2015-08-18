@@ -2,6 +2,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <memory>
+#include <set>
 
 typedef long long int64;
 typedef unsigned long long uint64;
@@ -115,8 +116,64 @@ private:
     
 };
 
-class CGEN
+class C_PRG : public PRNG
 {
+public:
+    void setSeed(uint32 seed)
+    {
+        srand(seed);
+    }
+    
+    uint32 nextInt()
+    {
+        return static_cast<uint32>(rand());
+    }
+};
+
+class ShiftedBorlandPRNG : public PRNG
+{
+    uint32 nextInt()
+    {
+        return shift(myrand());
+    }
+    
+    void setSeed(uint32 seed)
+    {
+        myseed = seed;
+        myrand();
+    }
+private:
+    uint32 myseed = 0x015A4E36;
+    
+    int myrand(void)
+    {
+        unsigned int t = myseed * 0x015A4E35 + 1;
+        myseed = t;
+        return (int)(t >> 16) & 0x7FFF;
+    }
+    
+    uint32 shift(int a)
+    {
+        return static_cast<uint32>(a >> 7);
+    }
+};
+
+class LCG_Tester
+{
+public:
+    int test(shared_ptr<PRNG>& lcg)
+    {
+        set<uint32> s;
+        while (1)
+        {
+            uint32 r = lcg->nextInt() & ((1 << 16) - 1);
+            if (s.find(r) == s.end())
+                s.insert(r);
+            else
+                break;
+        }
+        return s.size();
+    }
 };
 
 class GeneratorInvoker
@@ -165,9 +222,11 @@ public:
         freopen (NULL, "wb", stdout);
         fwrite(&nrOfStrings, sizeof(int64), 1, stdout);
         fwrite(&length, sizeof(int64), 1, stdout);
+        
         for (int64 i = 1; i <= nrOfStrings; ++i)
         {
             prng->setSeed(nextSeed());
+            
             if (i % 100 == 0)
                 fprintf(stderr, "Generator: %lld/%lld\n", i, nrOfStrings);
             generateString(length);
@@ -198,7 +257,7 @@ private:
         for (int64 i = 0; i < nrOfBytes; ++i)
         {
             uint32 r = prng->nextInt();
-            char c = getByte(r, 1);
+            char c = getByte(r, 0);
             //fprintf(stderr, "GeneratorInvoker::generateString r = %u, c = %hhu\n", r, c);
             fwrite(&c, sizeof(char), 1, stdout);
         }
@@ -245,6 +304,14 @@ shared_ptr<PRNG> getPRNG(char* name)
     else if (strcmp(name, "CMRG") == 0)
     {
         return shared_ptr<PRNG>(new CMRG());
+    }
+    else if (strcmp(name, "SBorland") == 0)
+    {
+        return shared_ptr<PRNG>(new ShiftedBorlandPRNG());
+    }
+    else if (strcmp(name, "C_PRG") == 0)
+    {
+        return shared_ptr<PRNG>(new C_PRG());
     }
     return shared_ptr<PRNG>();
 }
