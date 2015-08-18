@@ -59,16 +59,11 @@ end
 
 
 function makePartition(nrOfParts, start, finish)
-    n = nrOfParts - 2
-    step = (finish - start) / n
     part = Array((Float64, Float64), nrOfParts)
-    part[1] = (-Inf, start)
-    curr = start
-    for i in 1:n
-        part[i+1] = (curr, curr+step)
-        curr = curr+step
+    breaks = [-Inf, linspace(start, finish, nrOfParts-1), Inf]
+    for i in 1:nrOfParts
+        part[i] = (breaks[i], breaks[i+1])
     end
-    part[nrOfParts] = (curr, Inf)
     return part
 end
 
