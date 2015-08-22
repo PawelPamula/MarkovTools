@@ -158,6 +158,33 @@ private:
     }
 };
 
+class ShiftedVisualPRNG : public PRNG
+{
+    uint32 nextInt()
+    {
+        return shift(myrand());
+    }
+    
+    void setSeed(uint32 seed)
+    {
+        myseed = seed;
+        //myrand();
+    }
+private:
+    uint32 myseed = 1;
+    
+    int myrand(void)
+    {
+        myseed = myseed * 0x343FDu + 0x269EC3u;
+        return (myseed >> 16) & 0x7FFF;
+    }
+    
+    uint32 shift(int a)
+    {
+        return static_cast<uint32>(a >> 7);
+    }
+};
+
 class LCG_Tester
 {
 public:
@@ -310,6 +337,10 @@ shared_ptr<PRNG> getPRNG(char* name)
         return shared_ptr<PRNG>(new ShiftedBorlandPRNG());
     }
     else if (strcmp(name, "C_PRG") == 0)
+    {
+        return shared_ptr<PRNG>(new C_PRG());
+    }
+    else if (strcmp(name, "SVIS") == 0)
     {
         return shared_ptr<PRNG>(new C_PRG());
     }
