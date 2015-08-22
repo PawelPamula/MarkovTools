@@ -11,23 +11,132 @@ typedef unsigned int uint32;
 
 using namespace std;
 
+uint64 pow2[64];
+uint64 pow2m1[65];
+
+void initPow()
+{
+    pow2[0] = 1;
+    pow2m1[0] = 0;
+    pow2m1[64] = 1;
+    for (int i = 1; i < 64; ++i)
+    {
+        pow2[i] = 2*pow2[i-1];
+        pow2m1[i] = pow2[i] - 1;
+        pow2m1[64] += pow2[i];
+    }
+}
+
+void printPow()
+{
+    for (int i = 0; i < 64; ++i)
+        printf("%llX\n", pow2[i]);
+    for (int i = 0; i < 65; ++i)
+        printf("%llX\n", pow2m1[i]);
+}
+
 class PRNG
 {
 public:
     virtual void setSeed(uint32 seed) = 0;
-    virtual uint32 nextInt() = 0;
+    virtual uint64 nextInt() = 0;
+    virtual uint32 getNrOfBits() = 0;
 };
+
+class OneByte : public PRNG
+{
+public:
+    OneByte(shared_ptr<PRNG> prng_, uint32 byteNr_)
+        : prng(prng_)
+        , byteNr(byteNr_)
+    {
+    }
+    
+    void setSeed(uint32 seed)
+    {
+        prng->setSeed(seed);
+    }
+    
+    uint64 nextInt()
+    {
+        return getByte(prng->nextInt());
+    }
+    
+    uint32 getNrOfBits()
+    {
+        return 8u;
+    }
+    
+private:
+    const shared_ptr<PRNG> prng;
+    const uint32 byteNr;
+    
+    uint64 getByte(uint64 n)
+    {
+        n = n >> (byteNr * 8);
+        return n & 255LLu;
+    }
+};
+
+class SomeBits : public PRNG
+{
+public:
+    SomeBits(shared_ptr<PRNG> prng_, uint32 mostSig_, uint32 leastSig_)
+        : prng(prng_)
+        , mostSig(mostSig_)
+        , leastSig(leastSig_)
+        , nrOfBits(mostSig_ + 1 - leastSig_)
+    {
+    }
+    
+    void setSeed(uint32 seed)
+    {
+        prng->setSeed(seed);
+    }
+    
+    uint64 nextInt()
+    {
+        return getBits(prng->nextInt());
+    }
+    
+    uint32 getNrOfBits()
+    {
+        return nrOfBits;
+    }
+    
+private:
+    const shared_ptr<PRNG> prng;
+    const uint32 mostSig;
+    const uint32 leastSig;
+    const uint32 nrOfBits;
+    
+    uint64 getBits(uint64 n)
+    {
+        n = n >> leastSig;
+        return n & pow2m1[nrOfBits];
+    }
+};
+
+shared_ptr<PRNG> getShifted(shared_ptr<PRNG> prng, uint32 shift)
+{
+    uint32 mg = prng->getNrOfBits() - 1;
+    uint32 lg = shift;
+    return shared_ptr<PRNG>(new SomeBits(prng, mg, lg));
+}
+
 
 class LCG : public PRNG
 {
 public:
-    const uint32 M;
+    const uint64 M;
     const uint64 a, b;
+    const uint32 nrOfBits;
     
-    LCG(uint32 M_, uint64 a_, uint64 b_)
+    LCG(uint64 M_, uint64 a_, uint64 b_, const uint32 nrOfBits_)
         : M(M_)
         , a(a_)
         , b(b_)
+        , nrOfBits(nrOfBits_)
     {
     }
     
@@ -36,14 +145,19 @@ public:
         this->seed = seed;
     }
     
-    uint32 nextInt()
+    uint64 nextInt()
     {
         seed = (a * seed + b) % M;
-        return seed;
+        return seed & pow2m1[nrOfBits];
+    }
+    
+    uint32 getNrOfBits()
+    {
+        return nrOfBits;
     }
     
 private:
-    uint32 seed = 1;
+    uint64 seed = 1;
 };
 
 class CMRG : public PRNG
@@ -65,22 +179,25 @@ public:
         n = 0;
     }
     
-    uint32 nextInt()
+    uint64 nextInt()
     {
         int64 nextx = xa *  x[(n+1)%3]  -  xb * x[n];
         int64 nexty = ya *  y[(n+2)%3]  -  yb * y[n];
         nextx = mymod(nextx, xm);
         nexty = mymod(nexty, ym);
-        x[n] = static_cast<int32>(nextx);
-        y[n] = static_cast<int32>(nexty);
-        //fprintf(stderr, "GeneratorInvoker::generateString %lld, %lld\n",nextx, nexty);
-        //fprintf(stderr, "GeneratorInvoker::generateString %d, %d, %d\n", x[0], x[1], x[2]);
+        x[n] = nextx;
+        y[n] = nexty;
         n = (n + 1)%3;
-        return (zm + nextx - nexty) % zm;
+        return static_cast<uint64>( (zm + nextx - nexty) % zm );
+    }
+    
+    uint32 getNrOfBits()
+    {
+        return 31;
     }
     
 private:
-    int32 x[3], y[3];
+    int64 x[3], y[3];
     const int64 xa = 63308;
     const int64 xb = 183326;
     const int64 xm = 2147483647LL;
@@ -106,14 +223,6 @@ private:
             res += m;
         return res;
     }
-    
-    void shift(int32* t, int32 t0)
-    {
-        t[2] = t[1];
-        t[1] = t[0];
-        t[0] = t0;
-    }
-    
 };
 
 class C_PRG : public PRNG
@@ -124,45 +233,23 @@ public:
         srand(seed);
     }
     
-    uint32 nextInt()
+    uint64 nextInt()
     {
-        return static_cast<uint32>(rand());
+        return static_cast<uint64>(rand());
+    }
+    
+    uint32 getNrOfBits()
+    {
+        return 31;
     }
 };
 
-class ShiftedBorlandPRNG : public PRNG
+class BorlandPRNG : public PRNG
 {
-    uint32 nextInt()
+    uint64 nextInt()
     {
-        return shift(myrand());
-    }
-    
-    void setSeed(uint32 seed)
-    {
-        myseed = seed;
-        myrand();
-    }
-private:
-    uint32 myseed = 0x015A4E36;
-    
-    int myrand(void)
-    {
-        unsigned int t = myseed * 0x015A4E35 + 1;
-        myseed = t;
-        return (int)(t >> 16) & 0x7FFF;
-    }
-    
-    uint32 shift(int a)
-    {
-        return static_cast<uint32>(a >> 7);
-    }
-};
-
-class ShiftedVisualPRNG : public PRNG
-{
-    uint32 nextInt()
-    {
-        return shift(myrand());
+        myseed = myseed * 0x015A4E35 + 1;
+        return static_cast<uint64>( (myseed >> 16) & 0x7FFF );
     }
     
     void setSeed(uint32 seed)
@@ -170,37 +257,37 @@ class ShiftedVisualPRNG : public PRNG
         myseed = seed;
         //myrand();
     }
+    
+    uint32 getNrOfBits()
+    {
+        return 15;
+    }
+    
 private:
-    uint32 myseed = 1;
-    
-    int myrand(void)
-    {
-        myseed = myseed * 0x343FDu + 0x269EC3u;
-        return (myseed >> 16) & 0x7FFF;
-    }
-    
-    uint32 shift(int a)
-    {
-        return static_cast<uint32>(a >> 7);
-    }
+    uint32 myseed = 0x015A4E36;
 };
 
-class LCG_Tester
+class VisualPRNG : public PRNG
 {
-public:
-    int test(shared_ptr<PRNG>& lcg)
+    uint64 nextInt()
     {
-        set<uint32> s;
-        while (1)
-        {
-            uint32 r = lcg->nextInt() & ((1 << 16) - 1);
-            if (s.find(r) == s.end())
-                s.insert(r);
-            else
-                break;
-        }
-        return s.size();
+        myseed = myseed * 0x343FDu + 0x269EC3u;
+        return static_cast<uint64>( (myseed >> 16) & 0x7FFF );
     }
+    
+    void setSeed(uint32 seed)
+    {
+        myseed = seed;
+        //myrand();
+    }
+    
+    uint32 getNrOfBits()
+    {
+        return 15;
+    }
+    
+private:
+    uint32 myseed = 1;
 };
 
 class GeneratorInvoker
@@ -270,24 +357,36 @@ public:
 private:
     shared_ptr<PRNG> prng;
     FILE* seeds = 0;
+    uint32 curr;
+    int filled;
     
-    static char getByte(uint32 n, uint32 byteNr)
+    void generateString(uint64 nrOfBits)
     {
-        n = n >> (byteNr * 8);
-        return static_cast<char>(n & 255u);
+        uint64 nrOfChunks = nrOfBits / 64;
+        curr = 0;
+        filled = 0;
+        for (uint64 i = 0; i < nrOfChunks; ++i)
+        {
+            uint64 chunk = nextChunk();
+            fwrite(&chunk, sizeof(uint64), 1, stdout);
+        }
     }
     
-    void generateString(int64 nrOfBits)
+    uint64 nextChunk()
     {
-        //fprintf(stderr, "GeneratorInvoker::generateString(%lld)\n", nrOfBits);
-        int64 nrOfBytes = nrOfBits / 8;
-        for (int64 i = 0; i < nrOfBytes; ++i)
+        uint64 r;
+        uint32 nrOfBits = prng->getNrOfBits();
+        while (filled < 64)
         {
-            uint32 r = prng->nextInt();
-            char c = getByte(r, 0);
-            //fprintf(stderr, "GeneratorInvoker::generateString r = %u, c = %hhu\n", r, c);
-            fwrite(&c, sizeof(char), 1, stdout);
+            r = prng->nextInt();
+            curr += (r << filled);
+            filled += nrOfBits;
         }
+        int used = nrOfBits + 64 - filled;
+        uint64 res = curr;
+        curr = r >> used;
+        filled = nrOfBits - used;
+        return res;
     }
     
     int nextSeed()
@@ -310,7 +409,7 @@ private:
 
 void wrongArgs(int argc, char** argv)
 {
-        printf("Usage: %s [prng name] [number of strings | path to seeds] [log2 of length]\n", argv[0]);
+        printf("Usage: %s [prng name] [number of strings | path to seeds] [log2 of length >= 6]\n", argv[0]);
         exit(0);
 }
 
@@ -318,23 +417,63 @@ shared_ptr<PRNG> getPRNG(char* name)
 {
     if (strcmp(name, "z_czapy") == 0)
     {
-        return shared_ptr<PRNG>(new LCG(1e9, 1234, 3));
+        return shared_ptr<PRNG>(new LCG(1e9, 1234, 3, 8));
     }
     else if (strcmp(name, "Rand") == 0)
     {
-        return shared_ptr<PRNG>(new LCG(2147483648LL, 1103515245, 12345));
+        return shared_ptr<PRNG>(new LCG(2147483648LL, 1103515245, 12345, 31));
+    }
+    else if (strcmp(name, "Rand0") == 0)
+    {
+        return shared_ptr<PRNG>(new LCG(2147483648LL, 1103515245, 12345, 8));
+    }
+    else if (strcmp(name, "Rand1") == 0)
+    {
+        return shared_ptr<PRNG>(
+            new SomeBits(
+                shared_ptr<PRNG>(new LCG(2147483648LL, 1103515245, 12345, 31)),
+                15, 8
+            ) );
     }
     else if (strcmp(name, "Minstd") == 0)
     {
-        return shared_ptr<PRNG>(new LCG(2147483647, 16807, 0));
+        return shared_ptr<PRNG>(new LCG(2147483647, 16807, 0, 31));
+    }
+    else if (strcmp(name, "Minstd0") == 0)
+    {
+        return shared_ptr<PRNG>(new LCG(2147483647, 16807, 0, 8));
+    }
+    else if (strcmp(name, "Minstd1") == 0)
+    {
+        return shared_ptr<PRNG>(
+            new SomeBits(
+                shared_ptr<PRNG>(new LCG(2147483647, 16807, 0, 31)),
+                15, 8
+            ) );
     }
     else if (strcmp(name, "CMRG") == 0)
     {
         return shared_ptr<PRNG>(new CMRG());
     }
+    else if (strcmp(name, "CMRG0") == 0)
+    {
+        return shared_ptr<PRNG>(
+            new SomeBits(
+                shared_ptr<PRNG>(new CMRG()),
+                7, 0
+            ) );
+    }
+    else if (strcmp(name, "CMRG1") == 0)
+    {
+        return shared_ptr<PRNG>(
+            new SomeBits(
+                shared_ptr<PRNG>(new CMRG()),
+                15, 8
+            ) );
+    }
     else if (strcmp(name, "SBorland") == 0)
     {
-        return shared_ptr<PRNG>(new ShiftedBorlandPRNG());
+        return getShifted(shared_ptr<PRNG>(new BorlandPRNG()), 7);
     }
     else if (strcmp(name, "C_PRG") == 0)
     {
@@ -342,7 +481,7 @@ shared_ptr<PRNG> getPRNG(char* name)
     }
     else if (strcmp(name, "SVIS") == 0)
     {
-        return shared_ptr<PRNG>(new C_PRG());
+        return getShifted(shared_ptr<PRNG>(new VisualPRNG()), 7);
     }
     return shared_ptr<PRNG>();
 }
@@ -357,6 +496,9 @@ int64 myPow(int64 a, uint32 b)
 
 int main(int argc, char** argv)
 {
+    initPow();
+    printPow();
+    
     if (argc != 4)
         wrongArgs(argc, argv);
     
@@ -368,7 +510,7 @@ int main(int argc, char** argv)
     }
     int64 nrOfStrings = atoi(argv[2]);
     uint32 logLength = atoi(argv[3]);
-    if (logLength <= 0)
+    if (logLength < 6)
         wrongArgs(argc, argv);
     int64 length = myPow(2LL, logLength);
     
