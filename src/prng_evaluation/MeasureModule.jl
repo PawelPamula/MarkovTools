@@ -14,7 +14,8 @@ export  Partition,
         distTV,
         distSep,
         distHell,
-        distRMS
+        distRMS,
+        chisqTest
 
 using Distributions
 
@@ -248,6 +249,27 @@ function distSep(u::Measure, v::Measure)
         arr[i] = fun(u.vals[i], v.vals[i])
     end
     return maximum(arr)
+end
+
+function chisqTest(m::Int64, obs::Measure, exp::Measure)
+    if obs.part != exp.part
+        throw("Measures operate on different partitions")
+    end
+    t = 0
+    l = length(obs.vals)
+    df = l-1
+    for i in 1:l
+        if (exp.vals[i] < 0.0000001)
+            df = df - 1
+            continue
+        end
+        O = m * obs.vals[i]
+        E = m * exp.vals[i]
+        t = t + (O - E)^2 / E
+    end
+    println("chisqTest $t")
+    chi = Chisq(df)
+    return ccdf(chi, t)
 end
 
 end # module
