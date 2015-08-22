@@ -15,6 +15,7 @@ function main()
     part = makePartition(testType, 42)
     ideal = getIdealMeasures(testType, part, [(length-getNrOfColumns(rset)+1):length])
     pres = ResultPresenter(rset, ideal)
+    setDisplay(pres, " & ", "\\\\ \\hline\n", 3, 2)
     init(pres, part)
     present(pres)
 end
