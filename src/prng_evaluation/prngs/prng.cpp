@@ -357,7 +357,7 @@ public:
 private:
     shared_ptr<PRNG> prng;
     FILE* seeds = 0;
-    uint32 curr;
+    uint64 curr;
     int filled;
     
     void generateString(uint64 nrOfBits)
@@ -375,10 +375,11 @@ private:
     uint64 nextChunk()
     {
         uint64 r;
-        uint32 nrOfBits = prng->getNrOfBits();
+        int nrOfBits = prng->getNrOfBits();
         while (filled < 64)
         {
             r = prng->nextInt();
+            //fprintf(stderr, "%llu\n", r);
             curr += (r << filled);
             filled += nrOfBits;
         }
@@ -386,6 +387,7 @@ private:
         uint64 res = curr;
         curr = r >> used;
         filled = nrOfBits - used;
+        //fprintf(stderr, "generator: %llX     %d\n", res, filled);
         return res;
     }
     
@@ -497,7 +499,7 @@ int64 myPow(int64 a, uint32 b)
 int main(int argc, char** argv)
 {
     initPow();
-    printPow();
+    //printPow();
     
     if (argc != 4)
         wrongArgs(argc, argv);
