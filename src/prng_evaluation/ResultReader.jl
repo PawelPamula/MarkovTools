@@ -6,16 +6,15 @@ function main()
     println("Entering main()")
     
     testType, loglen, pathToFile = getCommandLineArgs()
-    length = 2^loglen
     
     pair = readdlm(pathToFile, ';'; header=true)
     rset = ResultSet(vec(pair[2]))
     fillResultSet(rset, pair[1])
     
     part = makePartition(testType, 42)
-    ideal = getIdealMeasures(testType, part, [(length-getNrOfColumns(rset)+1):length])
+    ideal = getIdealMeasures(testType, part, 2 .^ [(loglen-getNrOfColumns(rset)+1):loglen])
     pres = ResultPresenter(rset, ideal)
-    setDisplay(pres, " & ", "\\\\ \\hline\n", 3, 2)
+    setDisplay(pres, " & ", "\\\\ \\hline\n", 4, 2)
     init(pres, part)
     present(pres)
 end

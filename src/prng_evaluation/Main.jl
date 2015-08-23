@@ -26,7 +26,7 @@ function main()
     
     part = makePartition(testType, 42)
     println("All bits read...")
-    idealMeasures = getIdealMeasures(testType, part, [(length-nrOfCheckPoints):length])
+    idealMeasures = getIdealMeasures(testType, part, checkPoints)
     pres = ResultPresenter(invoker.results, idealMeasures)
     init(pres, part)
     present(pres)
@@ -86,6 +86,11 @@ function readAllBits(invoker, nrOfStrings, length)
     counter = 0
     for i in 1:nrOfStrings
         data = read(STDIN, Uint32, div(length,32))
+        #println("Julia: readAllBits")
+        #for j in 1:div(length,32)
+        #    @printf "%X" data[j]
+        #end
+        #println()
         bits = BitSeq(data)
         #println("readAllBits $i")
         addSeq(invoker, bits)
