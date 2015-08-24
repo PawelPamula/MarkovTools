@@ -3,6 +3,7 @@
 #include <cstring>
 #include <memory>
 #include <set>
+#include <random>
 
 typedef long long int64;
 typedef unsigned long long uint64;
@@ -290,6 +291,52 @@ private:
     uint32 myseed = 1;
 };
 
+class Mersenne : public PRNG
+{
+public:
+    void setSeed(uint32 seed)
+    {
+        eng.seed(seed);
+    }
+    
+    uint64 nextInt()
+    {
+//         //uint64 r = static_cast<uint64>(eng());
+        //fprintf(stderr, "%llu\n", r & pow2m1[63]);
+        //return r & pow2m1[63];
+        return static_cast<uint64>(eng());
+    }
+    
+    uint32 getNrOfBits()
+    {
+        return 64;
+    }
+    
+    mt19937_64 eng;
+};
+
+class RandU : public PRNG
+{
+public:
+    void setSeed(uint32 seed)
+    {
+        s = seed + (seed % 2 == 0 ? 1 : 0);
+    }
+    
+    uint64 nextInt()
+    {
+        s = (65539llu * s) % pow2[31];
+        return s;
+    }
+    
+    uint32 getNrOfBits()
+    {
+        return 31;
+    }
+    
+    uint64 s;
+};
+
 class GeneratorInvoker
 {
 public:
@@ -368,26 +415,25 @@ private:
         for (uint64 i = 0; i < nrOfChunks; ++i)
         {
             uint64 chunk = nextChunk();
+            //fprintf(stderr, "filled = %d\n", filled);
             fwrite(&chunk, sizeof(uint64), 1, stdout);
         }
     }
     
     uint64 nextChunk()
     {
-        uint64 r;
+        uint64 r = 0;
         int nrOfBits = prng->getNrOfBits();
         while (filled < 64)
         {
             r = prng->nextInt();
-            //fprintf(stderr, "%llu\n", r);
             curr += (r << filled);
             filled += nrOfBits;
         }
         int used = nrOfBits + 64 - filled;
         uint64 res = curr;
-        curr = r >> used;
+        curr = used < 64 ? (r >> used) : 0;
         filled = nrOfBits - used;
-        //fprintf(stderr, "generator: %llX     %d\n", res, filled);
         return res;
     }
     
@@ -484,6 +530,14 @@ shared_ptr<PRNG> getPRNG(char* name)
     else if (strcmp(name, "SVIS") == 0)
     {
         return getShifted(shared_ptr<PRNG>(new VisualPRNG()), 7);
+    }
+    else if (strcmp(name, "Mersenne") == 0)
+    {
+        return shared_ptr<PRNG>(new Mersenne());
+    }
+    else if (strcmp(name, "RANDU") == 0)
+    {
+        return shared_ptr<PRNG>(new RandU());
     }
     return shared_ptr<PRNG>();
 }
