@@ -347,6 +347,12 @@ public:
     {
     }
     
+    GeneratorInvoker(shared_ptr<PRNG>& prng_, int64 nrOfSeedsToSkip_)
+        : prng(prng_)
+        , nrOfSeedsToSkip(nrOfSeedsToSkip_)
+    {
+    }
+    
     GeneratorInvoker(const GeneratorInvoker&) = delete;
     
     ~GeneratorInvoker()
@@ -381,8 +387,12 @@ public:
     {
         fprintf(stderr, "GeneratorInvoker::run(%lld, %lld)\n", nrOfStrings, length);
         freopen (NULL, "wb", stdout);
+        
+        nrOfStrings -= nrOfSeedsToSkip;
         fwrite(&nrOfStrings, sizeof(int64), 1, stdout);
         fwrite(&length, sizeof(int64), 1, stdout);
+        
+        skipSeeds();
         
         for (int64 i = 1; i <= nrOfStrings; ++i)
         {
@@ -395,6 +405,12 @@ public:
         fclose(stdout);
     }
     
+    void skipSeeds()
+    {
+        for (int i = 0; i < nrOfSeedsToSkip; ++i)
+            nextSeed();
+    }
+    
     void run(int64 length)
     {
         int nrOfStrings = getNextIntFromFile();
@@ -404,6 +420,7 @@ public:
 private:
     shared_ptr<PRNG> prng;
     FILE* seeds = 0;
+    int64 nrOfSeedsToSkip = 0;
     uint64 curr;
     int filled;
     
@@ -457,7 +474,7 @@ private:
 
 void wrongArgs(int argc, char** argv)
 {
-        printf("Usage: %s [prng name] [number of strings | path to seeds] [log2 of length >= 6]\n", argv[0]);
+        printf("Usage: %s [prng name] [number of strings | path to seeds] [log2 of length >= 6] [nrOfSeeds to skip]\n", argv[0]);
         exit(0);
 }
 
@@ -555,7 +572,7 @@ int main(int argc, char** argv)
     initPow();
     //printPow();
     
-    if (argc != 4)
+    if (argc < 4)
         wrongArgs(argc, argv);
     
     shared_ptr<PRNG> prng = getPRNG(argv[1]);
@@ -569,8 +586,11 @@ int main(int argc, char** argv)
     if (logLength < 6)
         wrongArgs(argc, argv);
     int64 length = myPow(2LL, logLength);
+    int64 skip = 0;
+    if (argc == 5)
+        skip = atoi(argv[4]);
     
-    GeneratorInvoker gi(prng);
+    GeneratorInvoker gi(prng, skip);
     if (nrOfStrings <= 0)
     {
         gi.setPathToSeeds(argv[2]);

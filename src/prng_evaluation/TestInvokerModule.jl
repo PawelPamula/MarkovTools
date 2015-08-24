@@ -32,12 +32,14 @@ type TestInvoker
     end
 end #type TestInvoker
 
-function setFileHandle(ti::TestInvoker, fileHandle::IOStream)
+function setFileHandle(ti::TestInvoker, fileHandle::IOStream, makeHeader::Bool)
     ti.fileHandle = fileHandle
     ti.writeToFile = true
-    write(fileHandle, join(ti.checkPointsLabels, "; "))
-    write(fileHandle, "\n")
-    flush(fileHandle)
+    if makeHeader
+        write(fileHandle, join(ti.checkPointsLabels, "; "))
+        write(fileHandle, "\n")
+        flush(fileHandle)
+    end
 end
 
 function resetFileHandle(ti::TestInvoker)

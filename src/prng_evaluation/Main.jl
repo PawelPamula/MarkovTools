@@ -8,7 +8,7 @@ using ResultPresenterModule
 function main()
     println("Entering main()")
     
-    testType, nrOfCheckPoints, pathToFile = getCommandLineArgs()
+    testType, nrOfCheckPoints, pathToFile, writeMode = getCommandLineArgs()
     
     nrOfStrings, length = getDataSize()
     println("Julia: nrOfStrings = $nrOfStrings\nJulia: length = $length");
@@ -19,8 +19,8 @@ function main()
     println("Julia: checkPoints = $checkPoints\nlabels = $checkPointsLabels");
     
     invoker = TestInvoker(getTestFunction(testType), checkPoints, checkPointsLabels)
-    file = open(pathToFile, "w")
-    setFileHandle(invoker, file)
+    file = open(pathToFile, writeMode)
+    setFileHandle(invoker, file, writeMode == "w")
     readAllBits(invoker, nrOfStrings, length)    
     close(file)
     
@@ -33,12 +33,12 @@ function main()
 end
 
 function getCommandLineArgs()
-    if (length(ARGS) < 1 || length(ARGS) > 3)
-        error("Usage: julia Main.jl [lil|asin] [nrOfCheckPoints] [pathToFile]")
+    if (length(ARGS) < 1 || length(ARGS) > 4)
+        error("Usage: julia Main.jl [lil|asin] [nrOfCheckPoints] [pathToFile] [writeMode]")
     end
     
     if (length(ARGS) == 1)
-        return ARGS[1], 0, "tmp.txt"
+        return ARGS[1], 0, "tmp.txt", "w"
     end
     
     nrOfCheckPoints = parse(ARGS[2])
@@ -47,10 +47,14 @@ function getCommandLineArgs()
     end
     
     if (length(ARGS) == 2)
-        return ARGS[1], nrOfCheckPoints, "tmp.txt"
+        return ARGS[1], nrOfCheckPoints, "tmp.txt", "w"
     end
     
-    return ARGS[1], nrOfCheckPoints, ARGS[3]
+    if (length(ARGS) == 3)
+        return ARGS[1], nrOfCheckPoints, ARGS[3], "w"
+    end
+    
+    return ARGS[1], nrOfCheckPoints, ARGS[3], ARGS[4]
 end
 
 
