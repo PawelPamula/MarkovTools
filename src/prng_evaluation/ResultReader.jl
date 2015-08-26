@@ -21,12 +21,12 @@ end
 
 function getCommandLineArgs()
     if (length(ARGS) < 2 || length(ARGS) > 3)
-        error("Usage: julia ResultReader.jl [lil|asin] [log2 of length] [pathToFile] [writemode]")
+        error("Usage: julia ResultReader.jl [lil|asin] [log2 of length] [pathToFile]")
     end
     
     loglen = parse(ARGS[2])
     if (typeof(loglen) != Int || loglen < 0)
-        error("Usage: julia Main.jl [lil|asin] [log2 of length] [pathToFile] [writemode]")
+        error("Usage: julia Main.jl [lil|asin] [log2 of length] [pathToFile]")
     end
     
     if (length(ARGS) == 2)

@@ -315,6 +315,32 @@ public:
     mt19937_64 eng;
 };
 
+class Zepsuty : public PRNG
+{
+public:
+    void setSeed(uint32 seed)
+    {
+        seedNr++;
+        eng.seed(seed);
+    }
+    
+    uint64 nextInt()
+    {
+        if (seedNr % 100 == 0)
+            return 0x5555555555555555LLu;
+        else
+            return static_cast<uint64>(eng());
+    }
+    
+    uint32 getNrOfBits()
+    {
+        return 64;
+    }
+    
+    int seedNr = 0;
+    mt19937_64 eng;
+};
+
 class RandU : public PRNG
 {
 public:
@@ -500,6 +526,14 @@ shared_ptr<PRNG> getPRNG(char* name)
                 15, 8
             ) );
     }
+    else if (strcmp(name, "Rand3") == 0)
+    {
+        return shared_ptr<PRNG>(
+            new SomeBits(
+                shared_ptr<PRNG>(new LCG(2147483648LL, 1103515245, 12345, 31)),
+                30, 23
+            ) );
+    }
     else if (strcmp(name, "Minstd") == 0)
     {
         return shared_ptr<PRNG>(new LCG(2147483647, 16807, 0, 31));
@@ -555,6 +589,10 @@ shared_ptr<PRNG> getPRNG(char* name)
     else if (strcmp(name, "RANDU") == 0)
     {
         return shared_ptr<PRNG>(new RandU());
+    }
+    else if (strcmp(name, "zepsuty") == 0)
+    {
+        return shared_ptr<PRNG>(new Zepsuty());
     }
     return shared_ptr<PRNG>();
 }

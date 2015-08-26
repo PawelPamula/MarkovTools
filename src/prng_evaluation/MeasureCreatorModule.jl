@@ -65,7 +65,8 @@ function fillBuckets(mc::MeasureCreator)
     for cp in 1:getNrOfColumns(mc.results)
         vals = getColumn(mc.results, cp)
         for i in 1:n
-            addToBucket(mc, cp, vals[i])
+            #addToBucket(mc, cp, vals[i])
+            addToBucket(mc, cp, round(vals[i], 4))
         end
     end      
 end
