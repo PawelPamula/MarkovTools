@@ -327,7 +327,8 @@ public:
     uint64 nextInt()
     {
         if (seedNr % 100 == 0)
-            return 0x5555555555555555LLu;
+            //return 0x5555555555555555LLu;
+            return 0x9999999999999999LLu;
         else
             return static_cast<uint64>(eng());
     }
@@ -548,6 +549,30 @@ shared_ptr<PRNG> getPRNG(char* name)
             new SomeBits(
                 shared_ptr<PRNG>(new LCG(2147483647, 16807, 0, 31)),
                 15, 8
+            ) );
+    }
+    else if (strcmp(name, "NewMinstd") == 0)
+    {
+        return shared_ptr<PRNG>(new LCG(2147483647, 48271, 0, 31));
+    }
+    else if (strcmp(name, "NewMinstd0") == 0)
+    {
+        return shared_ptr<PRNG>(new LCG(2147483647, 48271, 0, 8));
+    }
+    else if (strcmp(name, "NewMinstd1") == 0)
+    {
+        return shared_ptr<PRNG>(
+            new SomeBits(
+                shared_ptr<PRNG>(new LCG(2147483647, 48271, 0, 31)),
+                15, 8
+            ) );
+    }
+    else if (strcmp(name, "NewMinstd3") == 0)
+    {
+        return shared_ptr<PRNG>(
+            new SomeBits(
+                shared_ptr<PRNG>(new LCG(2147483647, 48271, 0, 31)),
+                30, 23
             ) );
     }
     else if (strcmp(name, "CMRG") == 0)
