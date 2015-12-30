@@ -272,6 +272,7 @@ end
 function fileToBitSeq(filename::String)
 	Stream = open(filename)
 	Bytes = readbytes(Stream)
+	close(Stream)
 	UInt32s = reinterpret(UInt32, Bytes)
 	return BitSeq(UInt32s)
 end

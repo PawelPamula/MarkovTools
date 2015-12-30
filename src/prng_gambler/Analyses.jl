@@ -13,18 +13,16 @@ function AnalyzeGambler1D(randomSources, start::Int64, limit::Int64, p::Real, q:
 			]
 	Wins  = 0
 	Loses = 0
-	Total = 0
+	Total = length(results)
 	TotalTime = 0
 	
 	for (T, W) in results
 		if W
 			Wins += 1
-		else
-			Loses += 1
 		end
-		Total += 1
 		TotalTime += T
 	end
+	Loses = Total - Wins
 	
 	return (Wins, Loses, Total, float(Wins / Total), TotalTime, TotalTime / Total)
 end
@@ -44,7 +42,8 @@ function EstimateResultsGambler1D(start::Int64, limit::Int64, p::Real, q::Real)
 end
 
 function runTest(runs)
-	for N in [16, 32, 64, 128, 256]
+	#for N in [16, 32, 64, 128, 256]
+	for N in [16, 32, 64]
 		for i in 1:(N-1)
 			println("i: ", i, " N: ", N)
 			runOnSources(i, N, 1//2, 1//2, runs)
@@ -52,28 +51,49 @@ function runTest(runs)
 			runOnSources(i, N, 2//5, 3//7, runs)
 		end
 	end
+	for N in [512, 1024, 4096]
+		i = N/2
+		println("i: ", i, " N: ", N)
+		runOnSources(i, N, 1//2, 1//2, runs)
+		runOnSources(i, N, 0.47, 0.53, runs)
+		runOnSources(i, N, 2//5, 3//7, runs)
+	end
 end
 
 function runOnSources(i, N, p, q, runs)
-	sources0 = [RandSources.juliaBitSource for i in 1:runs]
-	sources1 = [RandSources.bitSeqBitSource(
-			fileToBitSeq("seq_urand_$i")
-		) for i in 1:runs]
-	sources2 = [RandSources.bitSeqBitSource(
-			fileToBitSeq("seq_openssl_$i")
-		) for i in 1:runs]
-	randomSources0 = [BitTracker(src) for src in sources0]
-	randomSources1 = [BitTracker(src) for src in sources1]
-	randomSources2 = [BitTracker(src) for src in sources2]
+	fileSources = ["seq_urand_", "seq_openssl_", "seq_rc4_", "seq_aes128ctr_", "seq_aes192ctr_", "seq_aes256ctr_"]
+	
+	juliaBitSources = [RandSources.juliaBitSource for i in 1:runs]
+	
+	fileSourcesComp = [
+						RandSources.bitSeqBitSource(BitSeqModule.fileToBitSeq("$file$i"))
+						for i=1:runs, file=fileSources
+					]
+	
+	sources = [juliaBitSources fileSourcesComp]
+	randomSources = [
+						BitTracker(sources[x,y]) for x=1:size(sources,1), y=1:size(sources,2)
+					]
+	
+	labels = [
+				"Julia Rand(0:1) # "
+				"/dev/urandom    # "
+				"OpenSSL-RNG     # "
+				"OpenSSL-RC4     # "
+				"AES-128-CTR     # "
+				"AES-192-CTR     # "
+				"AES-256-CTR     # "
+			]
 	
 	(rho,) = EstimateResultsGambler1D(i, N, p, q)
 	rndrho = round(Int, rho * runs) // runs
 	
 	println("Expected rho: $rho")
-	println("($rndrho)")
-	println(AnalyzeGambler1D(randomSources0, i, N, p, q))
-	println(AnalyzeGambler1D(randomSources1, i, N, p, q))
-	println(AnalyzeGambler1D(randomSources2, i, N, p, q))
+	println("($rndrho) for p: $p, q: $q")
+	for rs in 1:length(labels)
+		print(labels[rs])
+		println(AnalyzeGambler1D(randomSources[:,rs], i, N, p, q))
+	end
 end
 
 end #module
