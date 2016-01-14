@@ -83,10 +83,10 @@ function isLost(state::Gambler1D)
 end
 
 # Runs Gambler's Ruin process until the outcome is determined
-# state		: state of the process
-# stepFunction	: step function, e.g. stepRegular
-# randomSource	: random source for step function, e.g. simpleRandom
-# returns		: pair: (state.time, isWon(state))
+# @param state			: state of the process
+# @param stepFunction	: step function, e.g. stepRegular
+# @param randomSource	: random source for step function, e.g. simpleRandom
+# @return				: pair: (state.time, isWon(state))
 function runGambler(state::Gambler1D, stepFunction, randomSource)
 	while !isFinished(state)
 		stepFunction(state, randomSource)

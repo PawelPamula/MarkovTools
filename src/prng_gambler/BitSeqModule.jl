@@ -20,7 +20,7 @@ export  BitSeq,
 type BitSeq
 
     # data from which bits are extracted.
-    data::Array{Uint32, 1}
+    data::Array{UInt32, 1}
     
     # physical length of the array with data
     dataL::Int64
@@ -29,9 +29,9 @@ type BitSeq
     
     bitIndex::Int64
     
-    tempWord::Uint32
+    tempWord::UInt32
     
-    function BitSeq(data::Array{Uint32, 1})
+    function BitSeq(data::Array{UInt32, 1})
         this = new()
         this.dataL = length(data)
         this.data = data
@@ -232,7 +232,7 @@ end
 # @param str string in which number is written.
 # @param beg index of the first character of a substring which codes a number.
 # @return number read.
-function readUint32(str::String, beg::Int64)
+function readUInt32(str::AbstractString, beg::Int64)
     #println("readUint32 $beg")
     v::Uint32 = 0
     for i in 0:31
@@ -249,7 +249,7 @@ end
 # Every '0' is converted to 0, and every other character is converted to 1.
 # @param str string to be converted
 # @return bit sequence as a Bool Array
-function stringToBitArray(str::String)
+function stringToBitArray(str::AbstractString)
     l = length(str)
     while (l > 0 && isWhite(str[l]))
         l = l-1
@@ -269,7 +269,7 @@ end
 # Reads the whole file and converts it to BitSeq
 # @param filename the path to the file
 # @return bit sequence
-function fileToBitSeq(filename::String)
+function fileToBitSeq(filename::AbstractString)
 	Stream = open(filename)
 	Bytes = readbytes(Stream)
 	close(Stream)

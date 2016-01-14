@@ -6,6 +6,16 @@ using RandSources
 using Gambler
 using BitSeqModule
 
+"""
+Simple Gambler analyzer. Runs Gambler's ruin process with given @start, 
+@limit, @p, @q, @stepWin, @stepLoss and @stepNone parameters on all
+given @randomSources. Then, it counts the number of wins and loses,
+total time of all games, average game time.
+
+@return a tuple of form (# of wins, # of loses, total # of games, 
+	averaged win/total ratio, total time of all games and the average
+	time of one game.
+"""
 function AnalyzeGambler1D(randomSources, start::Int64, limit::Int64, p::Real, q::Real, stepWin::Int64=1, stepLoss::Int64=-1, stepNone::Int64=0)
 	results = [
 				runGambler(Gambler1D(start, limit, p, q, stepWin, stepLoss, stepNone), Gambler.stepRegular, source)
@@ -61,7 +71,8 @@ function runTest(runs)
 end
 
 function runOnSources(i, N, p, q, runs)
-	fileSources = ["seq_urand_", "seq_openssl_", "seq_rc4_", "seq_aes128ctr_", "seq_aes192ctr_", "seq_aes256ctr_"]
+	#fileSources = ["seq_urand_", "seq_openssl_", "seq_rc4_", "seq_aes128ctr_", "seq_aes192ctr_", "seq_aes256ctr_", "seq_crand_"]
+	fileSources = ["seq_urand_", "seq_openssl_", "seq_rc4_", "seq_crand_"]
 	
 	juliaBitSources = [RandSources.juliaBitSource for i in 1:runs]
 	
@@ -80,9 +91,10 @@ function runOnSources(i, N, p, q, runs)
 				"/dev/urandom    # "
 				"OpenSSL-RNG     # "
 				"OpenSSL-RC4     # "
-				"AES-128-CTR     # "
-				"AES-192-CTR     # "
-				"AES-256-CTR     # "
+				#"AES-128-CTR     # "
+				#"AES-192-CTR     # "
+				#"AES-256-CTR     # "
+				"C RAND          # "
 			]
 	
 	(rho,) = EstimateResultsGambler1D(i, N, p, q)
