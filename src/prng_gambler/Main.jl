@@ -1,4 +1,5 @@
 #!/usr/bin/env julia
+push!(LOAD_PATH, ".")
 
 using Analyses
 
