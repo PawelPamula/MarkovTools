@@ -132,10 +132,7 @@ function stepRegular(state::GamblerND, random)
 end
 
 # returns true if process is either won or lost
-function isFinished(state::Gambler1D)
-	return isWon(state) || isLost(state)
-end
-function isFinished(state::GamblerND)
+function isFinished(state::TGambler)
 	return isWon(state) || isLost(state)
 end
 
