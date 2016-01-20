@@ -56,7 +56,7 @@ function runTest(runs)
 	for N in [16, 32, 64]
 		for i in 1:(N-1)
 			println("i: ", i, " N: ", N)
-			runOnSources(i, N, 1//2, 1//2, runs)
+			runOnSources(i, N, 0.50, 0.50, runs)
 			runOnSources(i, N, 0.47, 0.53, runs)
 			runOnSources(i, N, 2//5, 3//7, runs)
 		end
@@ -74,6 +74,7 @@ function runOnSources(i, N, p, q, runs)
 	#fileSources = ["seq_urand_", "seq_openssl_", "seq_rc4_", "seq_aes128ctr_", "seq_aes192ctr_", "seq_aes256ctr_", "seq_crand_"]
 	fileSources = ["seq_urand_", "seq_openssl_", "seq_rc4_", "seq_crand_"]
 	
+#	brokenBitSources = [RandSources.brokenBitSource for i in 1:runs]
 	juliaBitSources = [RandSources.juliaBitSource for i in 1:runs]
 	
 	fileSourcesComp = [
@@ -81,12 +82,15 @@ function runOnSources(i, N, p, q, runs)
 						for i=1:runs, file=fileSources
 					]
 	
-	sources = [juliaBitSources fileSourcesComp]
+#	sources = [	brokenBitSources juliaBitSources fileSourcesComp ]
+	sources = [	juliaBitSources fileSourcesComp ]
+	
 	randomSources = [
 						BitTracker(sources[x,y]) for x=1:size(sources,1), y=1:size(sources,2)
 					]
 	
 	labels = [
+#				"Broken 01010101 # "
 				"Julia Rand(0:1) # "
 				"/dev/urandom    # "
 				"OpenSSL-RNG     # "

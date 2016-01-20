@@ -4,7 +4,9 @@ export Gambler1D,
        GamblerND,
        runGambler
 
-type Gambler1D
+abstract TGambler
+
+type Gambler1D	<: TGambler
 	
 	time::UInt64
 	
@@ -36,7 +38,7 @@ type Gambler1D
 	end
 end #Gambler1D
 
-type GamblerND
+type GamblerND	<: TGambler
 	dim::Unsigned
 	time::UInt64
 	value::AbstractArray{Int64}
@@ -46,16 +48,16 @@ type GamblerND
 	q::AbstractArray{Real} # individual step loss probability
 	
 	stepWin::AbstractArray{Int64}
-	stepNone::AbstractArray{Int64}
 	stepLoss::AbstractArray{Int64}
+	# stepNone doesn't make sense with n-dim gambler
 	
-	function GamblerND(N::Unsigned, start::Int64, limit::Int64, 
-			p::AbstractArray{Real}, q::AbstractArray{Real}, 
-			stepWin::AbstractArray{Int64} = [1 for _ in 1:N], 
-			stepLoss::AbstractArray{Int64} = [-1 for _ in 1:N], 
-			stepNone::AbstractArray{Int64} = [0 for _ in 1:N])
+	function GamblerND(dim::Integer, 
+			start::AbstractArray, limit::AbstractArray, 
+			p::AbstractArray, q::AbstractArray, 
+			stepWin::AbstractArray = [1 for _ in 1:dim], 
+			stepLoss::AbstractArray = [-1 for _ in 1:dim])
 		this = new()
-		this.dim = N
+		this.dim = dim
 		
 		this.time = 0
 		this.value = start
@@ -66,13 +68,11 @@ type GamblerND
 		
 		this.stepWin = stepWin
 		this.stepLoss = stepLoss
-		this.stepNone = stepNone
 		
 		return this
 	end
 end #Gambler1D
 
-TGambler = Union{Gambler1D, GamblerND}
 
 """
 The random function should return one of the 3 outcomes:
@@ -111,20 +111,19 @@ function stepRegular(state::Gambler1D, random)
 end
 
 """
-# Perform one step of regular N-dimensional Gambler's Ruin process.
+Perform one step of regular N-dimensional Gambler's Ruin process.
  @param state		: state of the process
  @param random		: function with interface like simpleRand
  @param returns		: true if process is finished (won or lost), false otherwise
 """
 function stepRegular(state::GamblerND, random)
-	for dim in 1:state.dim
-		Outcome = random(state.p, state.q)
+	Dim, Outcome = random(state.p, state.q)
+	# Can't play on the dimension that's already won
+	if !isWon(state, Dim)
 		if Outcome == 0
-			state.value[dim] += state.stepWin[dim]
-			break
+			state.value[Dim] += state.stepWin[Dim]
 		elseif Outcome == 1
-			state.value[dim] += state.stepLoss[dim]
-			break
+			state.value[Dim] += state.stepLoss[Dim]
 		end
 	end
 	state.time += 1
@@ -140,7 +139,7 @@ end
 function isWon(state::Gambler1D)
 	return state.value >= state.limit
 end
-function isWon(state::GamblerND, dim::Unsigned)
+function isWon(state::GamblerND, dim::Integer)
 	return state.value[dim] >= state.limit[dim]
 end
 function isWon(state::GamblerND)
@@ -151,7 +150,7 @@ end
 function isLost(state::Gambler1D)
 	return state.value <= 0
 end
-function isLost(state::GamblerND, dim::Unsigned)
+function isLost(state::GamblerND, dim::Integer)
 	return state.value[dim] <= 0
 end
 function isLost(state::GamblerND)
