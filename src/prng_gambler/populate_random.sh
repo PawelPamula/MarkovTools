@@ -37,7 +37,7 @@ for i in $(seq 1 $NSEQ); do
 	FNAME="seq/openssl_$i"
 	openssl rand -out $FNAME $BLEN
 	FNAME="seq/rc4_$i"
-	head -c $BLEN /dev/zero | openssl rc4 -out $FNAME -K $IHEX -iv $IHEX
+	head -c $BLEN /dev/zero | openssl rc4 -out $FNAME -K $IHEX
 	FNAME="seq/aes128ctr_$i"
 	head -c $BLEN /dev/zero | openssl enc -aes-128-ctr -out $FNAME -K $IHEX -iv $IHEX
 	FNAME="seq/aes192ctr_$i"

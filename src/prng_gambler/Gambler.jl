@@ -165,9 +165,7 @@ Runs Gambler's Ruin process until the outcome is determined
  @return				: pair: (state.time, isWon(state))
 """
 function runGambler(state::TGambler, stepFunction, randomSource)
-	while !isFinished(state)
-		stepFunction(state, randomSource)
-	end
+	while stepFunction(state, randomSource) end
 	return (state.time, isWon(state))
 end
 

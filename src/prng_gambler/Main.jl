@@ -4,7 +4,7 @@ push!(LOAD_PATH, ".")
 using Analyses
 
 function main()
-	Analyses.runTest(4096)
+	Analyses.runTest(64)
 end
 
 main()
