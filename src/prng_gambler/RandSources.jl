@@ -102,7 +102,7 @@ function BitTracker(bitSource)
 				end
 				Step *= Mul
 			end
-			return llrange # rrange == lrange from while end condition
+			return lrange - 1 # rrange == lrange from while end condition
 		end
 	return NF
 end
