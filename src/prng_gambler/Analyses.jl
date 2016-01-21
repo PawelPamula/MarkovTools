@@ -115,10 +115,11 @@ function runOnSources(i, N, p, q, runs)
 	for rs in 1:length(labels)
 		analysis = AnalyzeGambler1D(randomSources[:,rs], i, N, p, q, Gambler.stepRegular)
 		(wins, loses, total, ratio, timetotal, timeavg) = analysis
-		variance = (wins * ((1 - rho)^2) + loses * ((0 - rho)^2)) / total
+		rho_variance = (wins * ((1 - rho)^2) + loses * ((0 - rho)^2)) / total
+		mean_variance = (wins * ((1 - ratio)^2) + loses * ((0 - ratio)^2)) / total
 		print(labels[rs])
 		print(analysis)
-		println(" dev.: ", Float64(rho - ratio), " variance: ", Float64(variance))
+		println(" dev.: ", Float64(rho - ratio), " v_rho: ", Float64(rho_variance), " v_mean: ", Float64(mean_variance))
 	end
 end
 
