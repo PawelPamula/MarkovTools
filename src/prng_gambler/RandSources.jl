@@ -2,6 +2,7 @@ module RandSources
 
 export BitTracker,
 	   BitSlicer,
+	   BitSlicerInv,
 	   bitSeqBitSource
 
 using BitSeqModule
@@ -69,6 +70,21 @@ function checkInRangesRev(value::Real, ranges::AbstractArray)
 		result += 1
 	end
 	return result
+end
+
+function bitOutcomeND(X, ranges)
+	test = checkInRanges(X, ranges)
+
+	# move to [0...2n-1] range
+	test -= 1
+	Outcome = test & 1
+	Dim = (test >> 1) + 1
+	# if Dim > n, return outcome 2
+	if Dim > N
+		return 0, 2
+	else
+		return Dim, Outcome
+	end
 end
 
 """
@@ -166,14 +182,86 @@ function BitTrackerND(bitSource)
 end
 
 
+
 """
 Create a BitSlicer function-object for given @bitSource.
 The tracker interprets the consecutive slices of @length bits of the bit 
-source as floating-point representation of number from the interval
+source as little-endian floating-point representation of number from the interval
 [0, 1). Based on the number, one of the intervals [0,p), [p, p+q), 
 [p+q, 1) is chosen.
 """
 function BitSlicer(bitSource, length::Integer)
+	NF =
+		function(p::Real, q::Real)
+			Step = 1
+			X = 0
+			for i in 1:length
+				bit = bitSource() 
+				if bit
+					X += Step
+				end
+				Step *= 2
+			end
+
+			X = X / Step
+			
+			if (X < p)
+				return 0
+			elseif (X >= p && X < (p+q))
+				return 1
+			else # (X >= (p+q))
+				return 2
+			end
+		end
+	return NF
+end
+
+
+"""
+Create a BitSlicer function-object for given @bitSource.
+The tracker interprets the slices of @length bits of the bit 
+source as big-endian floating-point representation of number from the interval
+[0, 1). Based on the number, one of the intervals [0,p_1), [p_1, p_1+q_1), 
+[p_1+q_1, p_1+q_1+p_2)... is chosen.
+"""
+function BitSlicerND(bitSource, length::Integer)
+	NF =
+		function(p::Real, q::Real)
+			Step = 1
+			X = 0
+			for i in 1:length
+				bit = bitSource() 
+				if bit
+					X += Step
+				end
+				Step *= 2
+			end
+			X = X / Step
+
+			ranges = []
+			accu = 0
+			for i in 1:N
+				np = p[i] + accu
+				accu = np
+				nq = q[i] + accu
+				accu = nq
+				ranges = cat(1, ranges, [np, nq])
+			end
+			return bitOutcomeND(X, ranges)
+		end
+	return NF
+end
+
+
+
+"""
+Create a BitSlicer function-object for given @bitSource.
+The tracker interprets the consecutive slices of @length bits of the bit 
+source as big-endian floating-point representation of number from the interval
+[0, 1). Based on the number, one of the intervals [0,p), [p, p+q), 
+[p+q, 1) is chosen.
+"""
+function BitSlicerInv(bitSource, length::Integer)
 	NF =
 		function(p::Real, q::Real)
 			Step = 1//2
@@ -197,16 +285,14 @@ function BitSlicer(bitSource, length::Integer)
 	return NF
 end
 
-
-
 """
 Create a BitSlicer function-object for given @bitSource.
 The tracker interprets the slices of @length bits of the bit 
-source as floating-point representation of number from the interval
+source as big-endian floating-point representation of number from the interval
 [0, 1). Based on the number, one of the intervals [0,p_1), [p_1, p_1+q_1), 
 [p_1+q_1, p_1+q_1+p_2)... is chosen.
 """
-function BitSlicerND(bitSource, length::Integer)
+function BitSlicerInvND(bitSource, length::Integer)
 	NF =
 		function(p::Real, q::Real)
 			Step = 1//2
@@ -228,18 +314,7 @@ function BitSlicerND(bitSource, length::Integer)
 				accu = nq
 				ranges = cat(1, ranges, [np, nq])
 			end
-			test = checkInRanges(X, ranges)
-
-			# move to [0...2n-1] range
-			test -= 1
-			Outcome = test & 1
-			Dim = (test >> 1) + 1
-			# if Dim > n, return outcome 2
-			if Dim > N
-				return 0, 2
-			else
-				return Dim, Outcome
-			end
+			return bitOutcomeND(X, ranges)
 		end
 	return NF
 end

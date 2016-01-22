@@ -74,9 +74,9 @@ function runTest(runs)
 end
 
 function runOnSources(i, N, p, q, runs)
-	#fileSources = ["seq/urand_", "seq/openssl_", "seq/rc4_", "seq/aes128ctr_", "seq/aes192ctr_", "seq/aes256ctr_", "seq_crand_"]
-	#fileSources = ["seq/urand_", "seq/openssl_", "seq/rc4_", "seq/crand_"]
-	fileSources = ["seq/urand_", "seq/crand_"]
+	#fileSources = ["seq/urand/", "seq/openssl/", "seq/rc4/", "seq/aes128ctr/", "seq/aes192ctr/", "seq/aes256ctr/", "seq/crand/" "seq/randu/]
+	#fileSources = ["seq/urand/", "seq/openssl/", "seq/rc4/", "seq/crand/"]
+	fileSources = ["seq/urand/", "seq/crand/", "seq/randu/"]
 	
 #	brokenBitSources = [RandSources.brokenBitSource for i in 1:runs]
 	juliaBitSources = [RandSources.juliaBitSource for i in 1:runs]
@@ -87,11 +87,12 @@ function runOnSources(i, N, p, q, runs)
 					]
 	
 #	sources = [	brokenBitSources juliaBitSources fileSourcesComp ]
-	sources = [	juliaBitSources fileSourcesComp ]
+	sources = fileSourcesComp
 	
 	randomSources = [
-						BitSlicer(sources[x,y], 16) for x=1:size(sources,1), y=1:size(sources,2)
-#						BitTracker(sources[x,y]) for x=1:size(sources,1), y=1:size(sources,2)
+						BitTracker(sources[x,y]) for x=1:size(sources,1), y=1:size(sources,2)
+#						BitSlicer(sources[x,y], 15) for x=1:size(sources,15), y=1:size(sources,2)
+#						BitSlicerInv(sources[x,y], 15) for x=1:size(sources,1), y=1:size(sources,2)
 					]
 	
 	labels = [
@@ -104,22 +105,27 @@ function runOnSources(i, N, p, q, runs)
 				#"AES-192-CTR     # "
 				#"AES-256-CTR     # "
 				"C RAND          # "
+				"RANDU LCG       # "
 			]
 	
 	(rho,) = EstimateResultsGambler1D(i, N, p, q)
 	rndrho = round(Int, rho * runs) // runs
 	
-	println("Expected rho: $rho")
+	@printf("Expected rho: %f ", rho)
 	println("($rndrho) for p: $p, q: $q")
 	#println(" for p: $p, q: $q")
 	for rs in 1:length(labels)
 		analysis = AnalyzeGambler1D(randomSources[:,rs], i, N, p, q, Gambler.stepRegular)
+
+		lbl = labels[rs]
 		(wins, loses, total, ratio, timetotal, timeavg) = analysis
 		rho_variance = (wins * ((1 - rho)^2) + loses * ((0 - rho)^2)) / total
-		mean_variance = (wins * ((1 - ratio)^2) + loses * ((0 - ratio)^2)) / total
-		print(labels[rs])
-		print(analysis)
-		println(" dev.: ", Float64(rho - ratio), " v_rho: ", Float64(rho_variance), " v_mean: ", Float64(mean_variance))
+		mean_variance = (wins * ((1 - ratio)^2) + loses * ((0 - ratio)^2)) / (total - 1)
+
+		fdiff = Float32(rho - ratio)
+		fvrho = Float32(rho_variance)
+		fmrho = Float32(mean_variance)
+		println("$lbl $analysis diff.: $fdiff v_rho: $fvrho v_mean: $fmrho")
 	end
 end
 
