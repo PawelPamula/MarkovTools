@@ -42,19 +42,43 @@ for i in $(seq 1 $NSEQ); do
 	BLLEN=$(($BLEN/1024))
 
 	FNAME="seq/urand/$i"
-	dd if=/dev/urandom of=$FNAME count=$BLLEN bs=1KiB iflag=fullblock status=none
+	dd if=/dev/urandom of=$FNAME count=$BLLEN bs=1KiB iflag=fullblock status=none &
+	P0=$!
+	
 	FNAME="seq/openssl/$i"
-	openssl rand -out $FNAME $BLEN
+	openssl rand -out $FNAME $BLEN &
+	P1=$!
+	
 	FNAME="seq/rc4/$i"
-	head -c $BLEN /dev/zero | openssl rc4 -out $FNAME -K $IHEX
+	head -c $BLEN /dev/zero | openssl rc4 -out $FNAME -K $IHEX &
+	P2=$!
+	
 	FNAME="seq/aes128ctr/$i"
-	head -c $BLEN /dev/zero | openssl enc -aes-128-ctr -out $FNAME -K $IHEX -iv $IHEX
+	head -c $BLEN /dev/zero | openssl enc -aes-128-ctr -out $FNAME -K $IHEX -iv $IHEX &
+	P3=$!
+	
 	FNAME="seq/aes192ctr/$i"
-	head -c $BLEN /dev/zero | openssl enc -aes-192-ctr -out $FNAME -K $IHEX -iv $IHEX
+	head -c $BLEN /dev/zero | openssl enc -aes-192-ctr -out $FNAME -K $IHEX -iv $IHEX &
+	P4=$!
+	
 	FNAME="seq/aes256ctr/$i"
-	head -c $BLEN /dev/zero | openssl enc -aes-256-ctr -out $FNAME -K $IHEX -iv $IHEX
+	head -c $BLEN /dev/zero | openssl enc -aes-256-ctr -out $FNAME -K $IHEX -iv $IHEX &
+	P5=$!
+	
 	FNAME="seq/crand/$i"
-	./c_rand $BLEN $i > $FNAME
+	./c_rand $BLEN $i > $FNAME &
+	P6=$!
+	
 	FNAME="seq/randu/$i"
-	./randu $BLEN $i > $FNAME
+	./randu $BLEN $i > $FNAME &
+	P7=$!
+	
+	wait $P0
+	wait $P1
+	wait $P2
+	wait $P3
+	wait $P4
+	wait $P5
+	wait $P6
+	wait $P7
 done

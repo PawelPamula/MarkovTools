@@ -74,9 +74,11 @@ function runTest(runs)
 end
 
 function runOnSources(i, N, p, q, runs)
-	#fileSources = ["seq/urand/", "seq/openssl/", "seq/rc4/", "seq/aes128ctr/", "seq/aes192ctr/", "seq/aes256ctr/", "seq/crand/" "seq/randu/]
+	#fileSources = ["seq/urand/", "seq/openssl/", "seq/rc4/", "seq/aes128ctr/", "seq/aes192ctr/", "seq/aes256ctr/", "seq/crand/", "seq/randu/"]
+	fileSources = ["seq/urand/", "seq/openssl/", "seq/rc4/", "seq/aes128ctr/", "seq/crand/", "seq/randu/"]
 	#fileSources = ["seq/urand/", "seq/openssl/", "seq/rc4/", "seq/crand/"]
-	fileSources = ["seq/urand/", "seq/crand/", "seq/randu/"]
+	#fileSources = ["seq/urand/", "seq/crand/", "seq/randu/"]
+	#fileSources = ["seq/rc4/"]
 	
 #	brokenBitSources = [RandSources.brokenBitSource for i in 1:runs]
 	juliaBitSources = [RandSources.juliaBitSource for i in 1:runs]
@@ -90,20 +92,21 @@ function runOnSources(i, N, p, q, runs)
 	sources = fileSourcesComp
 	
 	randomSources = [
-						BitTracker(sources[x,y]) for x=1:size(sources,1), y=1:size(sources,2)
-#						BitSlicer(sources[x,y], 15) for x=1:size(sources,15), y=1:size(sources,2)
-#						BitSlicerInv(sources[x,y], 15) for x=1:size(sources,1), y=1:size(sources,2)
+#						BitTracker(sources[x,y]) for x=1:size(sources,1), y=1:size(sources,2)
+#						BitSlicer(sources[x,y], 15) for x=1:size(sources,1), y=1:size(sources,2)
+						BitSlicerInv(sources[x,y], 15) for x=1:size(sources,1), y=1:size(sources,2)
 					]
-	
+
+				
 	labels = [
-#				"Broken 01010101 # "
-				#"Julia Rand(0:1) # "
+				# "Broken 01010101 # "
+				# "Julia Rand(0:1) # "
 				"/dev/urandom    # "
-				#"OpenSSL-RNG     # "
-				#"OpenSSL-RC4     # "
-				#"AES-128-CTR     # "
-				#"AES-192-CTR     # "
-				#"AES-256-CTR     # "
+				"OpenSSL-RNG     # "
+				"OpenSSL-RC4     # "
+				"AES-128-CTR     # "
+				# "AES-192-CTR     # "
+				# "AES-256-CTR     # "
 				"C RAND          # "
 				"RANDU LCG       # "
 			]

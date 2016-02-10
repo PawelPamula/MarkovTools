@@ -56,7 +56,7 @@ function next(bits::BitSeq)
     else
         bits.wordIndex = bits.wordIndex + 1
         if (bits.wordIndex > bits.dataL)
-            reset(bits)
+            throw(EOFError())
         else
             bits.bitIndex = 0;
             bits.tempWord = bits.data[bits.wordIndex];
