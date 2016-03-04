@@ -22,22 +22,54 @@ stepFunction, stepWin::Int64=1, stepLoss::Int64=-1, stepNone::Int64=0)
 				runGambler(Gambler1D(start, limit, p, q, stepWin, stepLoss, stepNone), stepFunction, source)
 				for source in randomSources
 			]
+			
+	# Here I wanted to use filter and list comprehention, but it was slower
 	Wins  = 0
 	Loses = 0
-	Total = length(results)
+	TotalTimeVic = 0
+	TotalTimeDef = 0
+	ArrVic = []
+	ArrDef = []
 	TotalTime = 0
 	
 	for (T, W) in results
 		if W
 			Wins += 1
+			TotalTimeVic += T
+			push!(ArrVic, T)
+		else
+			Loses += 1
+			TotalTimeDef += T
+			push!(ArrDef, T)
 		end
-		TotalTime += T
 	end
-	Loses = Total - Wins
+	Total = Wins + Loses
+	TotalTime = TotalTimeVic + TotalTimeDef
 	
-	# TODO: variance
+	AvgTime = TotalTime / Total
+	AvgTimeVic = TotalTimeVic / Wins
+	AvgTimeDef = TotalTimeDef / Loses
+	
+	# I really wanted to do it with sum(list comprehention),
+	# but it was slower and took twice as much memmory
+	acc = 0
+	for (time, _) in results
+		acc += (time - AvgTime)^2
+	end
+	TimeVar = acc / (Total - 1)
+	acc = 0
+	for time in ArrVic
+		acc += (time - AvgTimeVic)
+	end
+	TimeVicVar = acc / (Wins - 1)
+	acc = 0
+	for time in ArrDef
+		acc += (time - AvgTimeDef)
+	end
+	TimeDefVar = acc / (Loses - 1)
+	
 
-	return (Wins, Loses, Total, float(Wins / Total), TotalTime, TotalTime / Total)
+	return (Wins, Loses, Total, float(Wins / Total), AvgTime, TimeVar, AvgTimeVic, TimeVicVar, AvgTimeDef, TimeDefVar)
 end
 
 function EstimateResultsGambler1D(start::Int64, limit::Int64, p, q)
@@ -70,10 +102,10 @@ function runTest(runs)
 	#	runOnSources(i, N, 0.47, 0.53, runs)
 	#	runOnSources(i, N, 2//5, 3//7, runs)
 	#end
-	runOnSources(290, 300, (i::Int64, N::Int64) -> 0.48, (i::Int64, N::Int64) -> 0.52, runs)
+	runOnSources(290, 300, (i::Int64, N::Int64) -> 0.48, "0.48", (i::Int64, N::Int64) -> 0.52, "0.52", runs)
 end
 
-function runOnSources(i, N, p, q, runs)
+function runOnSources(i, N, p, str_p, q, str_q, runs)
 	#fileSources = ["seq/urand/", "seq/openssl/", "seq/rc4/", "seq/aes128ctr/", "seq/aes192ctr/", "seq/aes256ctr/", "seq/crand/", "seq/randu/"]
 	fileSources = ["seq/urand/", "seq/openssl/", "seq/rc4/", "seq/aes128ctr/", "seq/crand/", "seq/randu/"]
 	#fileSources = ["seq/urand/", "seq/openssl/", "seq/rc4/", "seq/crand/"]
@@ -97,6 +129,7 @@ function runOnSources(i, N, p, q, runs)
 						BitSlicerInv(sources[x,y], 15) for x=1:size(sources,1), y=1:size(sources,2)
 					]
 
+	simulation_type = "BitSlicerInv"
 				
 	labels = [
 				# "Broken 01010101 # "
@@ -115,21 +148,26 @@ function runOnSources(i, N, p, q, runs)
 	rndrho = round(Int, rho * runs) // runs
 	
 	@printf("Expected rho: %f ", rho)
-	println("($rndrho) for p: $p, q: $q")
+	println("($rndrho) for p: $str_p, q: $str_q")
 	#println(" for p: $p, q: $q")
+	out_file = open("./results.csv", "w")
+	write(out_file, "p(i), q(i), N, n, i_0, simulation type, generator, estimated rho(i), simulated rho(i), variance (est), variance (sim), error b, mean time, time variance, mean time to win, time to win variance, mean time to loose, time to loose variance\n")
+	
 	for rs in 1:length(labels)
 		analysis = AnalyzeGambler1D(randomSources[:,rs], i, N, p, q, Gambler.stepRegular)
 
 		lbl = labels[rs]
-		(wins, loses, total, ratio, timetotal, timeavg) = analysis
+		(wins, loses, total, ratio, timeavg, timevar, timevicavg, timevicvar, timedefavg, timedefvar) = analysis
 		rho_variance = (wins * ((1 - rho)^2) + loses * ((0 - rho)^2)) / total
 		mean_variance = (wins * ((1 - ratio)^2) + loses * ((0 - ratio)^2)) / (total - 1)
 
 		fdiff = Float32(rho - ratio)
 		fvrho = Float32(rho_variance)
 		fmrho = Float32(mean_variance)
+		write(out_file, join((str_p, str_q, N, runs, i, simulation_type, lbl, rho, ratio, rho_variance, mean_variance, "-", timeavg, timevar, timevicavg, timevicvar, timedefavg, timedefvar), ","), "\n")
 		println("$lbl $analysis diff.: $fdiff v_rho: $fvrho v_mean: $fmrho")
 	end
+	close(out_file)
 end
 
 end #module
