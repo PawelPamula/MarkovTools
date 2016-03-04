@@ -23,7 +23,7 @@ stepFunction, stepWin::Int64=1, stepLoss::Int64=-1, stepNone::Int64=0)
 				for source in randomSources
 			]
 			
-	# Here I wanted to use filter and list comprehention, but it was slower
+	# Here I wanted to use filter and list comprehension, but it was slower
 	Wins  = 0
 	Loses = 0
 	TotalTimeVic = 0
@@ -50,7 +50,7 @@ stepFunction, stepWin::Int64=1, stepLoss::Int64=-1, stepNone::Int64=0)
 	AvgTimeVic = TotalTimeVic / Wins
 	AvgTimeDef = TotalTimeDef / Loses
 	
-	# I really wanted to do it with sum(list comprehention),
+	# I really wanted to do it with sum(list comprehension),
 	# but it was slower and took twice as much memmory
 	acc = 0
 	for (time, _) in results
@@ -102,7 +102,10 @@ function runTest(runs)
 	#	runOnSources(i, N, 0.47, 0.53, runs)
 	#	runOnSources(i, N, 2//5, 3//7, runs)
 	#end
-	runOnSources(290, 300, (i::Int64, N::Int64) -> 0.48, "0.48", (i::Int64, N::Int64) -> 0.52, "0.52", runs)
+	p(i::Int64, N::Int64) = 0.48
+	q(i::Int64, N::Int64) = 0.52
+	
+	runOnSources(290, 300, p, "0.48", q, "0.52", runs)
 end
 
 function runOnSources(i, N, p, str_p, q, str_q, runs)
