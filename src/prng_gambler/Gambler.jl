@@ -14,14 +14,14 @@ type Gambler1D	<: TGambler
 	
 	limit::Int64
 	
-	p::Real # step win probability
-	q::Real # step loss probability
+	p # step win probability function
+	q # step loss probability function
 	
 	stepWin::Int64
 	stepNone::Int64
 	stepLoss::Int64
 	
-	function Gambler1D(start::Int64, limit::Int64, p::Real, q::Real, stepWin::Int64=1, stepLoss::Int64=-1, stepNone::Int64=0)
+	function Gambler1D(start::Int64, limit::Int64, p, q, stepWin::Int64=1, stepLoss::Int64=-1, stepNone::Int64=0)
 		this = new()
 		this.time = 0
 		this.value = start
@@ -44,8 +44,8 @@ type GamblerND	<: TGambler
 	value::AbstractArray{Int64}
 	limit::AbstractArray{Int64}
 	
-	p::AbstractArray{Real} # individual step win probability
-	q::AbstractArray{Real} # individual step loss probability
+	p::AbstractArray # individual step win probability functions
+	q::AbstractArray # individual step loss probability functions
 	
 	stepWin::AbstractArray{Int64}
 	stepLoss::AbstractArray{Int64}
@@ -98,7 +98,9 @@ Perform one step of regular Gambler's Ruin process.
  @param returns		: true if process is finished (won or lost), false otherwise
 """
 function stepRegular(state::Gambler1D, random)
-	Outcome = random(state.p, state.q)
+	p = state.p(state.value, state.limit)
+	q = state.q(state.value, state.limit)
+	Outcome = random(p, q)
 	if Outcome == 0
 		state.value += state.stepWin
 	elseif Outcome == 1
@@ -117,7 +119,9 @@ Perform one step of regular N-dimensional Gambler's Ruin process.
  @param returns		: true if process is finished (won or lost), false otherwise
 """
 function stepRegular(state::GamblerND, random)
-	Dim, Outcome = random(state.p, state.q)
+	arr_p = [state.p[dim](state.value[dim], state.limit[dim])::Real for dim in 1:state.dim]
+	arr_q = [state.q[dim](state.value[dim], state.limit[dim])::Real for dim in 1:state.dim]
+	Dim, Outcome = random(arr_p, arr_q)
 	# Can't play on the dimension that's already won
 	if !isWon(state, Dim)
 		if Outcome == 0
@@ -143,7 +147,8 @@ function isWon(state::GamblerND, dim::Integer)
 	return state.value[dim] >= state.limit[dim]
 end
 function isWon(state::GamblerND)
-	return all([isWon(state, X) for X in 1:state.dim])
+	return all((X -> isWon(state,X)), 1:state.dim)
+	#return all([isWon(state, X) for X in 1:state.dim])
 end
 
 # returns true if current state.value <= 0
@@ -154,7 +159,8 @@ function isLost(state::GamblerND, dim::Integer)
 	return state.value[dim] <= 0
 end
 function isLost(state::GamblerND)
-	return any([isLost(state, X) for X in 1:state.dim])
+	return any((X -> isLost(state, X)), 1:state.dim)
+	#return any([isLost(state, X) for X in 1:state.dim])
 end
 
 """

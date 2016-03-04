@@ -16,7 +16,8 @@ total time of all games, average game time.
 	averaged win/total ratio, total time of all games and the average
 	time of one game.
 """
-function AnalyzeGambler1D(randomSources, start::Int64, limit::Int64, p::Real, q::Real, stepFunction, stepWin::Int64=1, stepLoss::Int64=-1, stepNone::Int64=0)
+function AnalyzeGambler1D(randomSources, start::Int64, limit::Int64, p, q, 
+stepFunction, stepWin::Int64=1, stepLoss::Int64=-1, stepNone::Int64=0)
 	results = [
 				runGambler(Gambler1D(start, limit, p, q, stepWin, stepLoss, stepNone), stepFunction, source)
 				for source in randomSources
@@ -39,16 +40,15 @@ function AnalyzeGambler1D(randomSources, start::Int64, limit::Int64, p::Real, q:
 	return (Wins, Loses, Total, float(Wins / Total), TotalTime, TotalTime / Total)
 end
 
-function EstimateResultsGambler1D(start::Int64, limit::Int64, p::Real, q::Real)
+function EstimateResultsGambler1D(start::Int64, limit::Int64, p, q)
 	# Compute the expected probability of winning with the given start, limit, p and q:
 	i = start
 	N = limit
-	if p == q
-		rho = i / N
-	else
-		qpr = big(q / p)
-		rho = (1 - qpr^i) / (1 - qpr^N)
-	end
+	
+	divident = sum([prod([big(q(r, N) / p(r, N)) for r in 1:(n-1)]) for n in 2:i])
+	divisor  = sum([prod([big(q(r, N) / p(r, N)) for r in 1:(n-1)]) for n in 2:N])
+	
+	rho = divident / divisor
 	
 	return (rho,)
 end
@@ -70,7 +70,7 @@ function runTest(runs)
 	#	runOnSources(i, N, 0.47, 0.53, runs)
 	#	runOnSources(i, N, 2//5, 3//7, runs)
 	#end
-	runOnSources(290, 300, 0.48, 0.52, runs)
+	runOnSources(290, 300, (i::Int64, N::Int64) -> 0.48, (i::Int64, N::Int64) -> 0.52, runs)
 end
 
 function runOnSources(i, N, p, q, runs)
