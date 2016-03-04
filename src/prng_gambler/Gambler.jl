@@ -143,7 +143,8 @@ function isWon(state::GamblerND, dim::Integer)
 	return state.value[dim] >= state.limit[dim]
 end
 function isWon(state::GamblerND)
-	return all([isWon(state, X) for X in 1:state.dim])
+	return all((X -> isWon(state,X)), 1:state.dim)
+	#return all([isWon(state, X) for X in 1:state.dim])
 end
 
 # returns true if current state.value <= 0
@@ -154,7 +155,8 @@ function isLost(state::GamblerND, dim::Integer)
 	return state.value[dim] <= 0
 end
 function isLost(state::GamblerND)
-	return any([isLost(state, X) for X in 1:state.dim])
+	return any((X -> isLost(state, X)), 1:state.dim)
+	#return any([isLost(state, X) for X in 1:state.dim])
 end
 
 """
