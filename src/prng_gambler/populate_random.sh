@@ -11,16 +11,15 @@ if [ -z "$BLEN" ]; then
 	BLEN=65536
 fi
 
-mkdir -p seq
-mkdir -p seq/urand
-mkdir -p seq/openssl
-mkdir -p seq/rc4
-mkdir -p seq/aes128ctr
-mkdir -p seq/aes192ctr
-mkdir -p seq/aes256ctr
-mkdir -p seq/crand
-mkdir -p seq/randu
-
+mkdir -p seq/{N,R}
+mkdir -p seq/{N,R}/urand
+mkdir -p seq/{N,R}/openssl
+mkdir -p seq/{N,R}/rc4
+mkdir -p seq/{N,R}/aes128ctr
+mkdir -p seq/{N,R}/aes192ctr
+mkdir -p seq/{N,R}/aes256ctr
+mkdir -p seq/{N,R}/crand
+mkdir -p seq/{N,R}/randu
 #
 # Generate NSEQ random sequences from various sources:
 # (the sequences have length of 16kB)
@@ -36,41 +35,53 @@ mkdir -p seq/randu
 # 
 
 # gcc c_rand.c -o c_rand
+# gcc randu.c -o randu
 
-for i in $(seq 1 $NSEQ); do 
-	IHEX=`echo "obase=16; $i" | bc`
+function generate # $1: index number $2: file prefix $3: cipher key
+{
+	i=$1
+	FPREFIX=$2
+	FKEY=$3
+	IHEX="00000000000000000000000000000000" # just for IVs here
+	
+	KEY32=`echo $FKEY | cut -c1-8`
+	DKEY32=`echo $((16#$KEY32))`
+	KEY128=`echo $FKEY | cut -c1-32`
+	KEY192=`echo $FKEY | cut -c1-48`
+	KEY256=$FKEY
+	
 	BLLEN=$(($BLEN/1024))
 
-	FNAME="seq/urand/$i"
+	FNAME="$FPREFIX/urand/$i"
 	dd if=/dev/urandom of=$FNAME count=$BLLEN bs=1KiB iflag=fullblock status=none &
 	P0=$!
 	
-	FNAME="seq/openssl/$i"
+	FNAME="$FPREFIX/openssl/$i"
 	openssl rand -out $FNAME $BLEN &
 	P1=$!
 	
-	FNAME="seq/rc4/$i"
-	head -c $BLEN /dev/zero | openssl rc4 -out $FNAME -K $IHEX &
+	FNAME="$FPREFIX/rc4/$i"
+	head -c $BLEN /dev/zero | openssl rc4 -out $FNAME -K $KEY128 &
 	P2=$!
 	
-	FNAME="seq/aes128ctr/$i"
-	head -c $BLEN /dev/zero | openssl enc -aes-128-ctr -out $FNAME -K $IHEX -iv $IHEX &
+	FNAME="$FPREFIX/aes128ctr/$i"
+	head -c $BLEN /dev/zero | openssl enc -aes-128-ctr -out $FNAME -K $KEY128 -iv $IHEX &
 	P3=$!
 	
-	FNAME="seq/aes192ctr/$i"
-	head -c $BLEN /dev/zero | openssl enc -aes-192-ctr -out $FNAME -K $IHEX -iv $IHEX &
+	FNAME="$FPREFIX/aes192ctr/$i"
+	head -c $BLEN /dev/zero | openssl enc -aes-192-ctr -out $FNAME -K $KEY192 -iv $IHEX &
 	P4=$!
 	
-	FNAME="seq/aes256ctr/$i"
-	head -c $BLEN /dev/zero | openssl enc -aes-256-ctr -out $FNAME -K $IHEX -iv $IHEX &
+	FNAME="$FPREFIX/aes256ctr/$i"
+	head -c $BLEN /dev/zero | openssl enc -aes-256-ctr -out $FNAME -K $KEY256 -iv $IHEX &
 	P5=$!
 	
-	FNAME="seq/crand/$i"
-	./c_rand $BLEN $i > $FNAME &
+	FNAME="$FPREFIX/crand/$i"
+	./c_rand $BLEN $DKEY32 > $FNAME &
 	P6=$!
 	
-	FNAME="seq/randu/$i"
-	./randu $BLEN $i > $FNAME &
+	FNAME="$FPREFIX/randu/$i"
+	./randu $BLEN $DKEY32 > $FNAME &
 	P7=$!
 	
 	wait $P0
@@ -81,4 +92,11 @@ for i in $(seq 1 $NSEQ); do
 	wait $P5
 	wait $P6
 	wait $P7
+}
+
+for i in $(seq 1 $NSEQ); do 
+	IHEX=`echo "obase=16; $i" | bc`
+	generate $i "seq/N" $IHEX
+	IHEX=`echo "$i" | sha256sum | cut -c1-64`
+	generate $i "seq/R" $IHEX
 done
