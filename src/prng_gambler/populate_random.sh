@@ -41,9 +41,6 @@ if [ ! -f /randu ]; then
 	gcc --std=c99 randu.c -o randu
 fi
 
-# gcc c_rand.c -o c_rand
-# gcc randu.c -o randu
-
 function generate # $1: index number $2: file prefix $3: cipher key
 {
 	i=$1
