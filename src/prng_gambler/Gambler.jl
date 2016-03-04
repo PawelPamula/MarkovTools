@@ -44,8 +44,8 @@ type GamblerND	<: TGambler
 	value::AbstractArray{Int64}
 	limit::AbstractArray{Int64}
 	
-	p::AbstractArray{Real} # individual step win probability functions
-	q::AbstractArray{Real} # individual step loss probability functions
+	p::AbstractArray # individual step win probability functions
+	q::AbstractArray # individual step loss probability functions
 	
 	stepWin::AbstractArray{Int64}
 	stepLoss::AbstractArray{Int64}
@@ -80,7 +80,7 @@ The random function should return one of the 3 outcomes:
   1: Loss ( random value between [p, p+q) )
   2: None ( random value between [p+q, 1) )
 """
-function simpleRand(p, q)
+function simpleRand(p::Real, q::Real)
 	R = rand() # rand returns random number \in [0, 1)
 	if R < p
 		return 0
@@ -119,9 +119,9 @@ Perform one step of regular N-dimensional Gambler's Ruin process.
  @param returns		: true if process is finished (won or lost), false otherwise
 """
 function stepRegular(state::GamblerND, random)
-	arr_p = [state.p[dim](state.value[dim], state.limit[dim]) for dim in 1:state.dim]
-	arr_q = [state.q[dim](state.value[dim], state.limit[dim]) for dim in 1:state.dim]
-	Dim, Outcome = random(state.p, state.q)
+	arr_p = [state.p[dim](state.value[dim], state.limit[dim])::Real for dim in 1:state.dim]
+	arr_q = [state.q[dim](state.value[dim], state.limit[dim])::Real for dim in 1:state.dim]
+	Dim, Outcome = random(arr_p, arr_q)
 	# Can't play on the dimension that's already won
 	if !isWon(state, Dim)
 		if Outcome == 0

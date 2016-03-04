@@ -8,7 +8,7 @@ function biasedRandomSource() return rand(0:1) <= 0.9 end
 
 function tests()
 	# Create a new Gambler2D object
-	Ps = [(i, N) -> 0.25, (i, N) -> 0.25]
+	Ps = [(i::Int64, N::Int64) -> 0.25, (i::Int64, N::Int64) -> 0.25]
 	Qs = Ps
 	G2D = Gambler.GamblerND(2, [10,10], [20,20], Ps, Qs)
 	BT = RandSources.BitTrackerND(biasedRandomSource)
