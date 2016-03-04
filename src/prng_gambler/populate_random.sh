@@ -20,18 +20,22 @@ mkdir -p seq/{N,R}/aes192ctr
 mkdir -p seq/{N,R}/aes256ctr
 mkdir -p seq/{N,R}/crand
 mkdir -p seq/{N,R}/randu
+
 #
 # Generate NSEQ random sequences from various sources:
 # (the sequences have length of 16kB)
 #
-# seq_urand_N			: sequence from /dev/urandom
-# seq_openssl_N			: sequence from openssl rand function
-# seq_rc4_N				: sequence from RC4 with key and iv equal to N (interpreted as hex)
-# seq_aes128ctr_N		: sequence from AES-128-CTR with ... (      ||      )
-# seq_aes192ctr_N		: sequence from AES-192-CTR with ... (      ||      )
-# seq_aes256ctr_N		: sequence from AES-256-CTR with ... (      ||      )
-# seq_crand_N			: sequence of first bytes of C rand() function with seed N
-# seq_randu_N			: sequence of first two bytes of RANDU function with seed N
+# seq/N - the key/seed of each sequence is serial, i.e. 1, 2, 3, ... NSEQ
+# seq/R - the key/seed of each sequence is psudorandom 
+#
+# seq/*/urand/*			: sequence from /dev/urandom
+# seq/*/openssl/*		: sequence from openssl rand function
+# seq/*/rc4/*			: sequence from RC4 (128 bit key)
+# seq/*/aes128ctr/*		: sequence from AES-128-CTR
+# seq/*/aes192ctr/*		: sequence from AES-192-CTR
+# seq/*/aes256ctr/*		: sequence from AES-256-CTR
+# seq/*/crand/*			: sequence of first bytes of C rand() function
+# seq/*/randu/*			: sequence of first two bytes of RANDU function
 # 
 
 if [ ! -f /c_rand ]; then
