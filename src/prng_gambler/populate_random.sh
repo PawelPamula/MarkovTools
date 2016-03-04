@@ -35,6 +35,13 @@ mkdir -p seq/randu
 # seq_randu_N			: sequence of first two bytes of RANDU function with seed N
 # 
 
+if [ ! -f /c_rand ]; then
+	gcc --std=c99 c_rand.c -o c_rand
+fi
+if [ ! -f /randu ]; then
+	gcc --std=c99 randu.c -o randu
+fi
+
 # gcc c_rand.c -o c_rand
 
 for i in $(seq 1 $NSEQ); do 
