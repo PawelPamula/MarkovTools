@@ -20,6 +20,7 @@ mkdir -p seq/{N,R}/aes192ctr
 mkdir -p seq/{N,R}/aes256ctr
 mkdir -p seq/{N,R}/crand
 mkdir -p seq/{N,R}/randu
+mkdir -p seq/{N,R}/hc128
 
 #
 # Generate NSEQ random sequences from various sources:
@@ -36,13 +37,17 @@ mkdir -p seq/{N,R}/randu
 # seq/*/aes256ctr/*		: sequence from AES-256-CTR
 # seq/*/crand/*			: sequence of first bytes of C rand() function
 # seq/*/randu/*			: sequence of first two bytes of RANDU function
+# seq/*/hc128/*			: sequence from hc128
 # 
 
 if [ ! -f /c_rand ]; then
-	gcc --std=c99 c_rand.c -o c_rand
+	gcc --std=c99 generators/c_rand.c -o c_rand
 fi
 if [ ! -f /randu ]; then
-	gcc --std=c99 randu.c -o randu
+	gcc --std=c99 generators/randu.c -o randu
+fi
+if [ ! -f /hc128 ]; then
+	gcc --std=c99 generators/hc128.c -o hc128
 fi
 
 function generate # $1: index number $2: file prefix $3: cipher key
@@ -92,6 +97,10 @@ function generate # $1: index number $2: file prefix $3: cipher key
 	./randu $BLEN $DKEY32 > $FNAME &
 	P7=$!
 	
+	FNAME="$FPREFIX/hc128/$i"
+	./hc128 $BLEN $KEY128 > $FNAME &
+	P8=$!
+	
 	wait $P0
 	wait $P1
 	wait $P2
@@ -100,6 +109,7 @@ function generate # $1: index number $2: file prefix $3: cipher key
 	wait $P5
 	wait $P6
 	wait $P7
+	wait $P8
 }
 
 for i in $(seq 1 $NSEQ); do 

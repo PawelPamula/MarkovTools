@@ -109,8 +109,8 @@ function runTest(runs)
 end
 
 function runOnSources(i, N, p, str_p, q, str_q, runs)
-	#fileSources = ["seq/R/urand/", "seq/R/openssl/", "seq/R/rc4/", "seq/R/aes128ctr/", "seq/R/aes192ctr/", "seq/R/aes256ctr/", "seq/R/crand/", "seq/R/randu/"]
-	fileSources = ["seq/R/urand/", "seq/R/openssl/", "seq/R/rc4/", "seq/R/aes128ctr/", "seq/R/crand/", "seq/R/randu/"]
+	#fileSources = ["seq/R/urand/", "seq/R/openssl/", "seq/R/rc4/", "seq/R/aes128ctr/", "seq/R/aes192ctr/", "seq/R/aes256ctr/", "seq/R/crand/", "seq/R/randu/", "seq/R/hc128/"]
+	fileSources = ["seq/R/urand/", "seq/R/openssl/", "seq/R/rc4/", "seq/R/aes128ctr/", "seq/R/crand/", "seq/R/randu/", "seq/R/hc128/"]
 	#fileSources = ["seq/R/urand/", "seq/R/openssl/", "seq/R/rc4/", "seq/R/crand/"]
 	#fileSources = ["seq/R/urand/", "seq/R/crand/", "seq/R/randu/"]
 	#fileSources = ["seq/R/rc4/"]
@@ -132,7 +132,7 @@ function runOnSources(i, N, p, str_p, q, str_q, runs)
 #						BitSlicerInv(sources[x,y], 15) for x=1:size(sources,1), y=1:size(sources,2)
 					]
 
-	simulation_type = "BitSlicerInv"
+	simulation_type = "BitTracker"
 				
 	labels = [
 				# "Broken 01010101 # "
@@ -145,6 +145,7 @@ function runOnSources(i, N, p, str_p, q, str_q, runs)
 				# "AES-256-CTR     # "
 				"C RAND          # "
 				"RANDU LCG       # "
+				"HC128           # "
 			]
 	
 	(rho,) = EstimateResultsGambler1D(i, N, p, q)
