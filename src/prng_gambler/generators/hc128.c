@@ -8,7 +8,7 @@ int main(int argc, const char* argv[])
 {
 	if(argc < 3)
 	{
-		fprintf(stderr, "Usage: c_rand [length] [128bit key]\n");
+		fprintf(stderr, "Usage: hc128 [length] [128bit key]\n");
 		return -1;
 	}
 	char *pEnd;
