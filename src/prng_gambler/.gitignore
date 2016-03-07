@@ -1,4 +1,7 @@
 seq
 c_rand
 randu
+hc128
+spritz
+vmpc
 results.csv
