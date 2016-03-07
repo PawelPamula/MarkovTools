@@ -201,6 +201,7 @@ int main(int argc, const char* argv[])
 	size_t len = strlen(argv[2]);
 	size_t even_len = len + len % 2;
 	char keystr[even_len];
+	keystr[0] = '0';
 	strcpy(&(keystr[len % 2]), argv[2]);
 	
 	char *pos = keystr;

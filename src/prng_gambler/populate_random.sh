@@ -17,6 +17,7 @@ mkdir -p seq/{N,R}/openssl
 mkdir -p seq/{N,R}/rc4
 mkdir -p seq/{N,R}/spritz
 mkdir -p seq/{N,R}/vmpc
+mkdir -p seq/{N,R}/rc4p
 mkdir -p seq/{N,R}/aes128ctr
 mkdir -p seq/{N,R}/aes192ctr
 mkdir -p seq/{N,R}/aes256ctr
@@ -35,7 +36,8 @@ mkdir -p seq/{N,R}/hc128
 # seq/*/openssl/*		: sequence from openssl rand function
 # seq/*/rc4/*			: sequence from RC4 (128 bit key)
 # seq/*/spritz/*		: sequence from Spritz
-# seq/*/vmpc/*			: sequence from VMPC KSA variant
+# seq/*/vmpc/*			: sequence from VMPC (KSA variant)
+# seq/*/rc4p/*			: sequence from RC4+
 # seq/*/aes128ctr/*		: sequence from AES-128-CTR
 # seq/*/aes192ctr/*		: sequence from AES-192-CTR
 # seq/*/aes256ctr/*		: sequence from AES-256-CTR
@@ -50,6 +52,9 @@ if [ ! -f /spritz ]; then
 fi
 if [ ! -f /vmpc ]; then
 	gcc --std=c99 generators/vmpc.c -o vmpc
+fi
+if [ ! -f /rc4p ]; then
+	gcc --std=c99 generators/rc4p.c -o rc4p
 fi
 if [ ! -f /c_rand ]; then
 	gcc --std=c99 generators/c_rand.c -o c_rand
@@ -96,43 +101,46 @@ function generate # $1: index number $2: file prefix $3: cipher key
 	./vmpc $BLEN $KEY128 > $FNAME &
 	P4=$!
 	
+	FNAME="$FPREFIX/rc4p/$i"
+	./rc4p $BLEN $KEY128 > $FNAME &
+	P5=$!
+	
 	FNAME="$FPREFIX/aes128ctr/$i"
 	head -c $BLEN /dev/zero | openssl enc -aes-128-ctr -out $FNAME -K $KEY128 -iv $IHEX &
-	P7=$!
+	P6=$!
 	
 	FNAME="$FPREFIX/aes192ctr/$i"
 	head -c $BLEN /dev/zero | openssl enc -aes-192-ctr -out $FNAME -K $KEY192 -iv $IHEX &
-	P8=$!
+	P7=$!
 	
 	FNAME="$FPREFIX/aes256ctr/$i"
 	head -c $BLEN /dev/zero | openssl enc -aes-256-ctr -out $FNAME -K $KEY256 -iv $IHEX &
-	P9=$!
+	P8=$!
 	
 	FNAME="$FPREFIX/crand/$i"
 	./c_rand $BLEN $DKEY32 > $FNAME &
-	P10=$!
+	P9=$!
 	
 	FNAME="$FPREFIX/randu/$i"
 	./randu $BLEN $DKEY32 > $FNAME &
-	P11=$!
+	P10=$!
 	
 	FNAME="$FPREFIX/hc128/$i"
 	./hc128 $BLEN $KEY128 > $FNAME &
-	P12=$!
+	P11=$!
 	
 	wait $P0
 	wait $P1
 	wait $P2
 	wait $P3
 	wait $P4
-	# wait $P5
-	# wait $P6
+	wait $P5
+	wait $P6
 	wait $P7
 	wait $P8
 	wait $P9
 	wait $P10
 	wait $P11
-	wait $P12
 }
 
 for i in $(seq 1 $NSEQ); do 

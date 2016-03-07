@@ -109,8 +109,8 @@ function runTest(runs)
 end
 
 function runOnSources(i, N, p, str_p, q, str_q, runs)
-	#fileSources = ["seq/R/urand/", "seq/R/openssl/", "seq/R/rc4/", "seq/R/spritz/", "seq/R/vmpc/", "seq/R/aes128ctr/", "seq/R/aes192ctr/", "seq/R/aes256ctr/", "seq/R/crand/", "seq/R/randu/", "seq/R/hc128/"]
-	fileSources = ["seq/R/urand/", "seq/R/openssl/", "seq/R/rc4/", "seq/R/spritz/", "seq/R/vmpc/", "seq/R/aes128ctr/", "seq/R/crand/", "seq/R/randu/", "seq/R/hc128/"]
+	#fileSources = ["seq/R/urand/", "seq/R/openssl/", "seq/R/rc4/", "seq/R/spritz/", "seq/R/vmpc/", "seq/R/rc4p/", "seq/R/aes128ctr/", "seq/R/aes192ctr/", "seq/R/aes256ctr/", "seq/R/crand/", "seq/R/randu/", "seq/R/hc128/"]
+	fileSources = ["seq/R/urand/", "seq/R/openssl/", "seq/R/rc4/", "seq/R/spritz/", "seq/R/vmpc/", "seq/R/rc4p/", "seq/R/aes128ctr/", "seq/R/crand/", "seq/R/randu/", "seq/R/hc128/"]
 	#fileSources = ["seq/R/urand/", "seq/R/openssl/", "seq/R/rc4/", "seq/R/crand/"]
 	#fileSources = ["seq/R/urand/", "seq/R/crand/", "seq/R/randu/"]
 	#fileSources = ["seq/R/rc4/"]
@@ -142,6 +142,7 @@ function runOnSources(i, N, p, str_p, q, str_q, runs)
 				"OpenSSL-RC4     # "
 				"SPRITZ          # "
 				"VMPC-KSA        # "
+				"RC4+            # "
 				"AES-128-CTR     # "
 				# "AES-192-CTR     # "
 				# "AES-256-CTR     # "
