@@ -48,8 +48,7 @@ stepFunction, stepWin::Int64=1, stepLoss::Int64=-1, stepNone::Int64=0)
 	TimeVicVar /= Wins - 1
 	TimeDefVar = @parallel (+) for t in ArrDef; (t - AvgTimeDef)^2; end
 	TimeDefVar /= Losses - 1
-	TimeVar = @parallel (+) for t in ArrVic; (t - AvgTime)^2; end
-	TimeVar += @parallel (+) for t in ArrDef; (t - AvgTime)^2; end
+	TimeVar = @parallel (+) for t in [ArrVic; ArrDef]; (t - AvgTime)^2; end
 	TimeVar /= Total - 1
 	
 	return (Wins, Losses, Total, float(Wins / Total), AvgTime, TimeVar, AvgTimeVic, TimeVicVar, AvgTimeDef, TimeDefVar)
