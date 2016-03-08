@@ -18,58 +18,41 @@ total time of all games, average game time.
 """
 function AnalyzeGambler1D(randomSources, start::Int64, limit::Int64, p, q, 
 stepFunction, stepWin::Int64=1, stepLoss::Int64=-1, stepNone::Int64=0)
-	results = [
-				runGambler(Gambler1D(start, limit, p, q, stepWin, stepLoss, stepNone), stepFunction, source)
-				for source in randomSources
-			]
-			
-	# Here I wanted to use filter and list comprehension, but it was slower
-	Wins  = 0
-	Loses = 0
-	TotalTimeVic = 0
-	TotalTimeDef = 0
-	ArrVic = []
-	ArrDef = []
-	TotalTime = 0
+		
+	join(a, b) = ([a[1]; b[1]], [a[2]; b[2]])
 	
-	for (T, W) in results
-		if W
-			Wins += 1
-			TotalTimeVic += T
-			push!(ArrVic, T)
+	function just_run(source)
+		(t, w) = runGambler(Gambler1D(start, limit, p, q, stepWin, stepLoss, stepNone), stepFunction, source)
+		if w
+			return (t, [])
 		else
-			Loses += 1
-			TotalTimeDef += T
-			push!(ArrDef, T)
+			return ([], t)
 		end
 	end
-	Total = Wins + Loses
+	
+	(ArrVic, ArrDef) = @parallel (join) for source in randomSources; just_run(source) end
+	
+	Wins  = length(ArrVic)
+	Losses = length(ArrDef)
+	TotalTimeVic = sum(ArrVic)
+	TotalTimeDef = sum(ArrDef)
+	
+	Total = Wins + Losses
 	TotalTime = TotalTimeVic + TotalTimeDef
 	
 	AvgTime = TotalTime / Total
 	AvgTimeVic = TotalTimeVic / Wins
-	AvgTimeDef = TotalTimeDef / Loses
+	AvgTimeDef = TotalTimeDef / Losses
 	
-	# I really wanted to do it with sum(list comprehension),
-	# but it was slower and took twice as much memmory
-	acc = 0
-	for (time, _) in results
-		acc += (time - AvgTime)^2
-	end
-	TimeVar = acc / (Total - 1)
-	acc = 0
-	for time in ArrVic
-		acc += (time - AvgTimeVic)
-	end
-	TimeVicVar = acc / (Wins - 1)
-	acc = 0
-	for time in ArrDef
-		acc += (time - AvgTimeDef)
-	end
-	TimeDefVar = acc / (Loses - 1)
+	TimeVicVar = @parallel (+) for t in ArrVic; (t - AvgTimeVic)^2; end
+	TimeVicVar /= Wins - 1
+	TimeDefVar = @parallel (+) for t in ArrDef; (t - AvgTimeDef)^2; end
+	TimeDefVar /= Losses - 1
+	TimeVar = @parallel (+) for t in ArrVic; (t - AvgTime)^2; end
+	TimeVar += @parallel (+) for t in ArrDef; (t - AvgTime)^2; end
+	TimeVar /= Total - 1
 	
-
-	return (Wins, Loses, Total, float(Wins / Total), AvgTime, TimeVar, AvgTimeVic, TimeVicVar, AvgTimeDef, TimeDefVar)
+	return (Wins, Losses, Total, float(Wins / Total), AvgTime, TimeVar, AvgTimeVic, TimeVicVar, AvgTimeDef, TimeDefVar)
 end
 
 function EstimateResultsGambler1D(start::Int64, limit::Int64, p, q)
