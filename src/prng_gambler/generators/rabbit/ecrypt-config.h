@@ -20,6 +20,8 @@
 #define ECRYPT_LITTLE_ENDIAN
 #elif defined(__i386)           /* x86 (gcc) */
 #define ECRYPT_LITTLE_ENDIAN
+#elif defined(__x86_64__)       /* x86-64 (gcc) */
+#define ECRYPT_LITTLE_ENDIAN
 #elif defined(_M_IX86)          /* x86 (MSC, Borland) */
 #define ECRYPT_LITTLE_ENDIAN
 #elif defined(_MSC_VER)         /* x86 (surely MSC) */

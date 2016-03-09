@@ -14,6 +14,7 @@ int main(int argc, const char* argv[])
 	}
 	char *pEnd;
 	u64 length = strtoull(argv[1], &pEnd, 10);
+	fprintf(stderr, "Creating %ld output bytes\n", length);
 	char keystr[] = "00000000000000000000000000000000";
 	size_t len = strlen(argv[2]);
 	strcpy(&(keystr[32-len]), argv[2]);
@@ -38,7 +39,7 @@ int main(int argc, const char* argv[])
 	for(int i=0; i<length; i+=16)
 	{
 		ECRYPT_process_bytes(0, &ctx, msg, output, 16);
-		for(int j=0; j<16; ++i)
+		for(int j=0; j<16; ++j)
 			putchar(output[j]);
 	}
 	
