@@ -27,7 +27,7 @@ mkdir -p seq/{N,R}/hc128
 
 #
 # Generate NSEQ random sequences from various sources:
-# (the sequences have length of 16kB)
+# (the sequences have length of $BLEN, 64 KB by default)
 #
 # seq/N - the key/seed of each sequence is serial, i.e. 1, 2, 3, ... NSEQ
 # seq/R - the key/seed of each sequence is psudorandom 
@@ -151,4 +151,5 @@ for i in $(seq 1 $NSEQ); do
 	generate $i "seq/N" $IHEX
 	IHEX=`echo "$i" | sha256sum | cut -c1-64`
 	generate $i "seq/R" $IHEX
+	echo "$i / $NSEQ"
 done
