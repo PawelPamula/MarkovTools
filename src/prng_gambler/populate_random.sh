@@ -62,6 +62,9 @@ fi
 if [ ! -f /randu ]; then
 	gcc --std=c99 generators/randu.c -o randu
 fi
+if [ ! -f /los-rng ]; then
+	g++ --std=c++11 generators/los-rng.cpp -o los-rng
+fi
 if [ ! -f /hc128 ]; then
 	gcc --std=c99 generators/hc128.c -o hc128
 fi
