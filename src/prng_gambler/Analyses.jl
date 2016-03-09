@@ -90,47 +90,40 @@ function runTest(runs)
 	runOnSources(290, 300, p, "0.48", q, "0.52", runs)
 end
 
-function runOnSources(i, N, p, str_p, q, str_q, runs)
-	#fileSources = ["seq/R/urand/", "seq/R/openssl/", "seq/R/rc4/", "seq/R/spritz/", "seq/R/vmpc/", "seq/R/rc4p/", "seq/R/aes128ctr/", "seq/R/aes192ctr/", "seq/R/aes256ctr/", "seq/R/crand/", "seq/R/randu/", "seq/R/hc128/"]
-	fileSources = ["seq/R/urand/", "seq/R/openssl/", "seq/R/rc4/", "seq/R/spritz/", "seq/R/vmpc/", "seq/R/rc4p/", "seq/R/aes128ctr/", "seq/R/crand/", "seq/R/randu/", "seq/R/hc128/"]
-	#fileSources = ["seq/R/urand/", "seq/R/openssl/", "seq/R/rc4/", "seq/R/crand/"]
-	#fileSources = ["seq/R/urand/", "seq/R/crand/", "seq/R/randu/"]
-	#fileSources = ["seq/R/rc4/"]
+function runOnSources(i, N, p, str_p, q, str_q, runs)	
 	
-#	brokenBitSources = [RandSources.brokenBitSource for i in 1:runs]
-	juliaBitSources = [RandSources.juliaBitSource for i in 1:runs]
+	# Functions for creating bit source
+	bs_from_file(file) = [
+		RandSources.bitSeqBitSource(BitSeqModule.fileToBitSeq("seq/R$file$i"))
+		for i=1:runs
+		]
 	
-	fileSourcesComp = [
-						RandSources.bitSeqBitSource(BitSeqModule.fileToBitSeq("$file$i"))
-						for i=1:runs, file=fileSources
-					]
+	bs_from_broken(_) = [RandSources.brokenBitSource for i in 1:runs]
 	
-#	sources = [	brokenBitSources juliaBitSources fileSourcesComp ]
-	sources = fileSourcesComp
+	bs_from_julia(_) = [RandSources.juliaBitSource for i in 1:runs]
 	
-	randomSources = [
-						BitTracker(sources[x,y]) for x=1:size(sources,1), y=1:size(sources,2)
-#						BitSlicer(sources[x,y], 15) for x=1:size(sources,1), y=1:size(sources,2)
-#						BitSlicerInv(sources[x,y], 15) for x=1:size(sources,1), y=1:size(sources,2)
-					]
-
-	simulation_type = "BitTracker"
+	# Functions for creating random source from bit source
+	simulations = [
+					"BitTracker  " BitTracker;
+					"BitSlicer   " x -> BitSlicer(x, 15);
+				#	"BitSlicerInv" x -> BitSlicerInv(x, 15);
+				]
 				
-	labels = [
-				# "Broken 01010101 # "
-				# "Julia Rand(0:1) # "
-				"/dev/urandom    # "
-				"OpenSSL-RNG     # "
-				"OpenSSL-RC4     # "
-				"SPRITZ          # "
-				"VMPC-KSA        # "
-				"RC4+            # "
-				"AES-128-CTR     # "
-				# "AES-192-CTR     # "
-				# "AES-256-CTR     # "
-				"C RAND          # "
-				"RANDU LCG       # "
-				"HC128           # "
+	sources = [
+			#	"Broken 01010101 " ""            bs_from_broken;
+			#	"Julia Rand(0:1) " ""            bs_from_julia;
+				"/dev/urandom    " "/urand/"     bs_from_file;
+				"OpenSSL-RNG     " "/openssl/"   bs_from_file;
+				"OpenSSL-RC4     " "/rc4/"       bs_from_file;
+				"SPRITZ          " "/spritz/"    bs_from_file;
+				"VMPC-KSA        " "/vmpc/"      bs_from_file;
+				"RC4+            " "/rc4p/"      bs_from_file;
+				"AES-128-CTR     " "/aes128ctr/" bs_from_file;
+			#	"AES-192-CTR     " "/aes192ctr/" bs_from_file;
+			#	"AES-256-CTR     " "/aes256ctr/" bs_from_file;
+				"C RAND          " "/crand/"     bs_from_file;
+				"RANDU LCG       " "/randu/"     bs_from_file;
+				"HC128           " "/hc128/"     bs_from_file;
 			]
 	
 	(rho,) = EstimateResultsGambler1D(i, N, p, q)
@@ -138,15 +131,18 @@ function runOnSources(i, N, p, str_p, q, str_q, runs)
 	
 	@printf("Expected rho: %f ", rho)
 	println("($rndrho) for p: $str_p, q: $str_q")
-	#println(" for p: $p, q: $q")
 	out_file = open("./results.csv", "w")
 	write(out_file, "p(i), q(i), N, n, i_0, simulation type, generator, estimated rho(i), simulated rho(i), variance (est), variance (sim), error b, mean time, time variance, mean time to win, time to win variance, mean time to loose, time to loose variance\n")
 	
-	for rs in 1:length(labels)
-		analysis = AnalyzeGambler1D(randomSources[:,rs], i, N, p, q, Gambler.stepRegular)
+	for bs in 1:size(sources,1), rs in 1:size(simulations,1)
+		lbl, file, to_bs = sources[bs,:]
+		simulation_type, simulation = simulations[rs,:]
+		
+		random_sources = pmap(simulation, to_bs(file))
+		
+		analysis = AnalyzeGambler1D(random_sources, i, N, p, q, Gambler.stepRegular)
 
-		lbl = labels[rs]
-		(wins, loses, total, ratio, timeavg, timevar, timevicavg, timevicvar, timedefavg, timedefvar) = analysis
+		wins, loses, total, ratio, timeavg, timevar, timevicavg, timevicvar, timedefavg, timedefvar = analysis
 		rho_variance = (wins * ((1 - rho)^2) + loses * ((0 - rho)^2)) / total
 		mean_variance = (wins * ((1 - ratio)^2) + loses * ((0 - ratio)^2)) / (total - 1)
 
