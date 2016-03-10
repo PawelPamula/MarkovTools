@@ -22,11 +22,15 @@ stepFunction, stepWin::Int64=1, stepLoss::Int64=-1, stepNone::Int64=0)
 	join(a, b) = ([a[1]; b[1]], [a[2]; b[2]])
 	
 	function just_run(source)
-		(t, w) = runGambler(Gambler1D(start, limit, p, q, stepWin, stepLoss, stepNone), stepFunction, source)
-		if w
-			return (t, [])
-		else
-			return ([], t)
+		try
+			(t, w) = runGambler(Gambler1D(start, limit, p, q, stepWin, stepLoss, stepNone), stepFunction, source)
+			if w
+				return (t, [])
+			else
+				return ([], t)
+			end
+		catch EOFError
+			return ([], [])
 		end
 	end
 	
@@ -104,14 +108,20 @@ function runOnSources(i, N, p, str_p, q, str_q, runs)
 	
 	# Functions for creating random source from bit source
 	simulations = [
-					"BitTracker  " BitTracker;
-					"BitSlicer   " x -> BitSlicer(x, 15);
-				#	"BitSlicerInv" x -> BitSlicerInv(x, 15);
+					"BitTracker    " BitTracker;
+					"BitSlicer8    " x -> BitSlicer(x, 8);
+					"BitSlicerInv8 " x -> BitSlicerInv(x, 8);
+					"BitSlicer15   " x -> BitSlicer(x, 15);
+					"BitSlicerInv15" x -> BitSlicerInv(x, 15);
+					"BitSlicer17   " x -> BitSlicer(x, 17);
+					"BitSlicerInv17" x -> BitSlicerInv(x, 17);
+				#	"BitSlicer31   " x -> BitSlicer(x, 31);
+				#	"BitSlicerInv31" x -> BitSlicerInv(x, 31);
 				]
 				
 	sources = [
 			#	"Broken 01010101 " ""            bs_from_broken;
-			#	"Julia Rand(0:1) " ""            bs_from_julia;
+				"Julia Rand(0:1) " ""            bs_from_julia;
 				"/dev/urandom    " "/urand/"     bs_from_file;
 				"OpenSSL-RNG     " "/openssl/"   bs_from_file;
 				"OpenSSL-RC4     " "/rc4/"       bs_from_file;
@@ -119,8 +129,8 @@ function runOnSources(i, N, p, str_p, q, str_q, runs)
 				"VMPC-KSA        " "/vmpc/"      bs_from_file;
 				"RC4+            " "/rc4p/"      bs_from_file;
 				"AES-128-CTR     " "/aes128ctr/" bs_from_file;
-			#	"AES-192-CTR     " "/aes192ctr/" bs_from_file;
-			#	"AES-256-CTR     " "/aes256ctr/" bs_from_file;
+				"AES-192-CTR     " "/aes192ctr/" bs_from_file;
+				"AES-256-CTR     " "/aes256ctr/" bs_from_file;
 				"C RAND          " "/crand/"     bs_from_file;
 				"RANDU LCG       " "/randu/"     bs_from_file;
 				"HC128           " "/hc128/"     bs_from_file;
@@ -132,7 +142,7 @@ function runOnSources(i, N, p, str_p, q, str_q, runs)
 	@printf("Expected rho: %f ", rho)
 	println("($rndrho) for p: $str_p, q: $str_q")
 	out_file = open("./results.csv", "w")
-	write(out_file, "p(i), q(i), N, n, i_0, simulation type, generator, estimated rho(i), simulated rho(i), variance (est), variance (sim), error b, mean time, time variance, mean time to win, time to win variance, mean time to loose, time to loose variance\n")
+	write(out_file, "p(i), q(i), N, n, i_0, simulation type, generator, estimated rho(i), simulated rho(i), variance (est), variance (sim), error b, mean time, time variance, mean time to win, time to win variance, mean time to lose, time to lose variance\n")
 	
 	for bs in 1:size(sources,1), rs in 1:size(simulations,1)
 		lbl, file, to_bs = sources[bs,:]
@@ -150,7 +160,7 @@ function runOnSources(i, N, p, str_p, q, str_q, runs)
 		fvrho = Float32(rho_variance)
 		fmrho = Float32(mean_variance)
 		write(out_file, join((str_p, str_q, N, runs, i, simulation_type, lbl, rho, ratio, rho_variance, mean_variance, "-", timeavg, timevar, timevicavg, timevicvar, timedefavg, timedefvar), ","), "\n")
-		println("$lbl $analysis diff.: $fdiff v_rho: $fvrho v_mean: $fmrho")
+		println("$lbl $simulation_type $analysis diff.: $fdiff v_rho: $fvrho v_mean: $fmrho")
 	end
 	close(out_file)
 end
