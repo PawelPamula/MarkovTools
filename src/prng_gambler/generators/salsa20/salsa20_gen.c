@@ -4,7 +4,7 @@
 
 #include "ecrypt-sync.h"
 
-#define KEY_LEN 128
+#define KEY_LEN 256
 #define IV_LEN 64
 
 int main(int argc, const char* argv[])
@@ -37,7 +37,7 @@ int main(int argc, const char* argv[])
 	
 	for(int i=0; i<length; i+=16)
 	{
-		ECRYPT_process_bytes(0, &ctx, msg, output, 16);
+		ECRYPT_keystream_bytes(&ctx, output, 16);
 		for(int j=0; j<16; ++j)
 			putchar(output[j]);
 	}

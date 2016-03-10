@@ -4,7 +4,7 @@
 
 #include "ecrypt-sync.h"
 
-#define KEY_LEN 128
+#define KEY_LEN 256
 #define IV_LEN 64
 
 int main(int argc, const char* argv[])

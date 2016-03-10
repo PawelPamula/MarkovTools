@@ -68,6 +68,24 @@ fi
 if [ ! -f /hc128 ]; then
 	gcc --std=c99 generators/hc128.c -o hc128
 fi
+if [ ! -f /rabbit ]; then
+	gcc --std=c99 generators/rabbit/ecrypt-sync.c generators/rabbit/rabbit.c generators/rabbit/rabbit_gen.c -o rabbit
+fi
+if [ ! -f /trivium ]; then
+	gcc --std=c99 generators/trivium/ecrypt-sync.c generators/trivium/trivium.c generators/trivium/trivium_gen.c -o trivium
+fi
+if [ ! -f /sosemanuk ]; then
+	gcc --std=c99 generators/sosemanuk/ecrypt-sync.c generators/sosemanuk/sosemanuk.c generators/sosemanuk/sosemanuk_gen.c -o sosemanuk
+fi
+if [ ! -f /salsa20 ]; then
+	gcc --std=c99 generators/salsa20/ecrypt-sync.c generators/salsa20/salsa20.c generators/salsa20/salsa20_gen.c -o salsa20
+fi
+if [ ! -f /grain ]; then
+	gcc --std=c99 generators/grain/ecrypt-sync.c generators/grain/grain.c generators/grain/grain_gen.c -o grain
+fi
+if [ ! -f /mickey ]; then
+	gcc --std=c99 generators/mickey/ecrypt-sync.c generators/mickey/mickey.c generators/mickey/mickey_gen.c -o mickey
+fi
 
 function generate # $1: index number $2: file prefix $3: cipher key
 {
@@ -78,6 +96,7 @@ function generate # $1: index number $2: file prefix $3: cipher key
 	
 	KEY32=`echo $FKEY | cut -c1-8`
 	DKEY32=`echo $((16#$KEY32))`
+	KEY80=`echo $FKEY | cut -c1-20`
 	KEY128=`echo $FKEY | cut -c1-32`
 	KEY192=`echo $FKEY | cut -c1-48`
 	KEY256=$FKEY
@@ -132,6 +151,30 @@ function generate # $1: index number $2: file prefix $3: cipher key
 	./hc128 $BLEN $KEY128 > $FNAME &
 	P11=$!
 	
+	FNAME="$FPREFIX/rabbit/$i"
+	./rabbit $BLEN $KEY128 > $FNAME &
+	P12=$!
+	
+	FNAME="$FPREFIX/trivium/$i"
+	./trivium $BLEN $KEY80 > $FNAME &
+	P13=$!
+	
+	FNAME="$FPREFIX/sosemanuk/$i"
+	./trivium $BLEN $KEY256 > $FNAME &
+	P14=$!
+	
+	FNAME="$FPREFIX/salsa20/$i"
+	./trivium $BLEN $KEY256 > $FNAME &
+	P15=$!
+	
+	FNAME="$FPREFIX/grain/$i"
+	./trivium $BLEN $KEY128 > $FNAME &
+	P16=$!
+	
+	FNAME="$FPREFIX/mickey/$i"
+	./trivium $BLEN $KEY128 > $FNAME &
+	P17=$!
+	
 	wait $P0
 	wait $P1
 	wait $P2
@@ -144,6 +187,12 @@ function generate # $1: index number $2: file prefix $3: cipher key
 	wait $P9
 	wait $P10
 	wait $P11
+	wait $P12
+	wait $P13
+	wait $P14
+	wait $P15
+	wait $P16
+	wait $P17
 }
 
 for i in $(seq 1 $NSEQ); do 
