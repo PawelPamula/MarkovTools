@@ -63,8 +63,8 @@ function EstimateResultsGambler1D(start::Int64, limit::Int64, p, q)
 	i = start
 	N = limit
 	
-	divident = sum([prod([big(q(r, N) / p(r, N)) for r in 1:(n-1)]) for n in 2:i])
-	divisor  = sum([prod([big(q(r, N) / p(r, N)) for r in 1:(n-1)]) for n in 2:N])
+	divident = sum([prod([big(q(r, N) / p(r, N)) for r in 1:(n-1)]) for n in 2:i]) + 1
+	divisor  = sum([prod([big(q(r, N) / p(r, N)) for r in 1:(n-1)]) for n in 2:N]) + 1
 	
 	rho = divident / divisor
 	
@@ -72,29 +72,35 @@ function EstimateResultsGambler1D(start::Int64, limit::Int64, p, q)
 end
 
 function runTest(runs)
-	#for N in [16, 32, 64, 128, 256]
-#	for N in [16, 32, 64]
-#		for i in 1:(N-1)
-#			println("i: ", i, " N: ", N)
-#			runOnSources(i, N, 0.50, 0.50, runs)
-#			runOnSources(i, N, 0.47, 0.53, runs)
-#			runOnSources(i, N, 2//5, 3//7, runs)
-#		end
-#	end
-	#for N in [300]
-	#	i = 150
-	#	println("i: ", i, " N: ", N)
-	#	runOnSources(i, N, 1//2, 1//2, runs)
-	#	runOnSources(i, N, 0.47, 0.53, runs)
-	#	runOnSources(i, N, 2//5, 3//7, runs)
-	#end
+	#
+	#  Constant p and q:
+	#
 	p(i::Int64, N::Int64) = 0.48
 	q(i::Int64, N::Int64) = 0.52
-	
 	runOnSources(290, 300, p, "0.48", q, "0.52", runs)
+
+	#
+	#  Variable p and q:
+	#
+	p(i::Int64, N::Int64) = (i)//(2*i + 1)
+	q(i::Int64, N::Int64) = (i+1)//(2*i + 1)
+	runOnSources(200, 300, p, "(i)/(2i+1)", q, "(i+1)/(2i+1)", runs)
+
+	p(i::Int64, N::Int64) =   (i)^3//(2*i^3 + 3*i^2 + 3*i + 1)
+	q(i::Int64, N::Int64) = (i+1)^3//(2*i^3 + 3*i^2 + 3*i + 1)
+	runOnSources(200, 300, p, "(i)^3/(2*i^3+3*i^2+3*i+1)", q, "(i+1)^3/(2*i^3+3*i^2+3*i+1)", runs)
+
+	p(i::Int64, N::Int64) = i//N
+	q(i::Int64, N::Int64) = (N-i)//N
+	runOnSources(150, 300, p, "i/N", q, "(N-i)/N", runs)
 end
 
 function runOnSources(i, N, p, str_p, q, str_q, runs)	
+	(rho,) = EstimateResultsGambler1D(i, N, p, q)
+	rndrho = round(Int, rho * runs) // runs
+	
+	@printf("Expected rho: %f ", float(rho))
+	println("($rho) [$rndrho] for p: $str_p, q: $str_q")
 	
 	# Functions for creating bit source
 	bs_from_file(file) = [
@@ -136,11 +142,6 @@ function runOnSources(i, N, p, str_p, q, str_q, runs)
 				"HC128           " "/hc128/"     bs_from_file;
 			]
 	
-	(rho,) = EstimateResultsGambler1D(i, N, p, q)
-	rndrho = round(Int, rho * runs) // runs
-	
-	@printf("Expected rho: %f ", rho)
-	println("($rndrho) for p: $str_p, q: $str_q")
 	out_file = open("./results.csv", "w")
 	write(out_file, "p(i), q(i), N, n, i_0, simulation type, generator, estimated rho(i), simulated rho(i), variance (est), variance (sim), error b, mean time, time variance, mean time to win, time to win variance, mean time to lose, time to lose variance\n")
 	
