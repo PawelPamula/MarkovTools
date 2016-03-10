@@ -11,6 +11,7 @@ if [ -z "$BLEN" ]; then
 	BLEN=65536
 fi
 
+mkdir -p bin
 mkdir -p seq/{N,R}
 mkdir -p seq/{N,R}/urand
 mkdir -p seq/{N,R}/openssl
@@ -24,6 +25,12 @@ mkdir -p seq/{N,R}/aes256ctr
 mkdir -p seq/{N,R}/crand
 mkdir -p seq/{N,R}/randu
 mkdir -p seq/{N,R}/hc128
+mkdir -p seq/{N,R}/rabbit
+mkdir -p seq/{N,R}/trivium
+mkdir -p seq/{N,R}/sosemanuk
+mkdir -p seq/{N,R}/salsa20
+mkdir -p seq/{N,R}/grain
+mkdir -p seq/{N,R}/mickey
 
 #
 # Generate NSEQ random sequences from various sources:
@@ -44,48 +51,44 @@ mkdir -p seq/{N,R}/hc128
 # seq/*/crand/*			: sequence of first bytes of C rand() function
 # seq/*/randu/*			: sequence of first two bytes of RANDU function
 # seq/*/hc128/*			: sequence from hc128
-# 
+# seq/*/rabbit			: sequence from rabbit (eSTREAM implementation)
+# seq/*/trivium			: sequence from trivium (eSTREAM implementation)
+# seq/*/sosemanuk		: sequence from sosemanuk (eSTREAM implementation)
+# seq/*/salsa20			: sequence from salsa20 (eSTREAM implementation)
+# seq/*/grain			: sequence from grain (eSTREAM implementation)
+# seq/*/mickey			: sequence from mickey (eSTREAM implementation)
 
+function compileSmallC # $1: generator name
+{
+	if [ ! -f bin/$1 ]; then
+		gcc --std=c99 generators/$1.c -o bin/$1
+	fi
+}
 
-if [ ! -f /spritz ]; then
-	gcc --std=c99 generators/spritz.c -o spritz
+function compileEstream # $1: generator name
+{
+	if [ ! -f bin/$1 ]; then
+		gcc --std=c99 generators/common/ecrypt-sync.c generators/$1/$1.c generators/$1/$1_gen.c -o bin/$1 -iquote generators/common -iquote generators/$1
+	fi
+}
+
+compileSmallC "spritz"
+compileSmallC "vmpc"
+compileSmallC "rc4p"
+compileSmallC "c_rand"
+compileSmallC "randu"
+compileSmallC "hc128"
+
+if [ ! -f bin/los-rng ]; then
+	g++ --std=c++11 generators/los-rng.cpp -o bin/los-rng
 fi
-if [ ! -f /vmpc ]; then
-	gcc --std=c99 generators/vmpc.c -o vmpc
-fi
-if [ ! -f /rc4p ]; then
-	gcc --std=c99 generators/rc4p.c -o rc4p
-fi
-if [ ! -f /c_rand ]; then
-	gcc --std=c99 generators/c_rand.c -o c_rand
-fi
-if [ ! -f /randu ]; then
-	gcc --std=c99 generators/randu.c -o randu
-fi
-if [ ! -f /los-rng ]; then
-	gcc --std=c++11 generators/los-rng.cpp -o los-rng
-fi
-if [ ! -f /hc128 ]; then
-	gcc --std=c99 generators/hc128.c -o hc128
-fi
-if [ ! -f /rabbit ]; then
-	gcc --std=c99 generators/rabbit/ecrypt-sync.c generators/rabbit/rabbit.c generators/rabbit/rabbit_gen.c -o rabbit
-fi
-if [ ! -f /trivium ]; then
-	gcc --std=c99 generators/trivium/ecrypt-sync.c generators/trivium/trivium.c generators/trivium/trivium_gen.c -o trivium
-fi
-if [ ! -f /sosemanuk ]; then
-	gcc --std=c99 generators/sosemanuk/ecrypt-sync.c generators/sosemanuk/sosemanuk.c generators/sosemanuk/sosemanuk_gen.c -o sosemanuk
-fi
-if [ ! -f /salsa20 ]; then
-	gcc --std=c99 generators/salsa20/ecrypt-sync.c generators/salsa20/salsa20.c generators/salsa20/salsa20_gen.c -o salsa20
-fi
-if [ ! -f /grain ]; then
-	gcc --std=c99 generators/grain/ecrypt-sync.c generators/grain/grain.c generators/grain/grain_gen.c -o grain
-fi
-if [ ! -f /mickey ]; then
-	gcc --std=c99 generators/mickey/ecrypt-sync.c generators/mickey/mickey.c generators/mickey/mickey_gen.c -o mickey
-fi
+
+compileEstream "rabbit"
+compileEstream "trivium"
+compileEstream "sosemanuk"
+compileEstream "salsa20"
+compileEstream "grain"
+compileEstream "mickey"
 
 function generate # $1: index number $2: file prefix $3: cipher key
 {
@@ -116,15 +119,15 @@ function generate # $1: index number $2: file prefix $3: cipher key
 	P2=$!
 	
 	FNAME="$FPREFIX/spritz/$i"
-	./spritz $BLEN $KEY128 > $FNAME &
+	bin/spritz $BLEN $KEY128 > $FNAME &
 	P3=$!
 	
 	FNAME="$FPREFIX/vmpc/$i"
-	./vmpc $BLEN $KEY128 > $FNAME &
+	bin/vmpc $BLEN $KEY128 > $FNAME &
 	P4=$!
 	
 	FNAME="$FPREFIX/rc4p/$i"
-	./rc4p $BLEN $KEY128 > $FNAME &
+	bin/rc4p $BLEN $KEY128 > $FNAME &
 	P5=$!
 	
 	FNAME="$FPREFIX/aes128ctr/$i"
@@ -140,39 +143,39 @@ function generate # $1: index number $2: file prefix $3: cipher key
 	P8=$!
 	
 	FNAME="$FPREFIX/crand/$i"
-	./c_rand $BLEN $DKEY32 > $FNAME &
+	bin/c_rand $BLEN $DKEY32 > $FNAME &
 	P9=$!
 	
 	FNAME="$FPREFIX/randu/$i"
-	./randu $BLEN $DKEY32 > $FNAME &
+	bin/randu $BLEN $DKEY32 > $FNAME &
 	P10=$!
 	
 	FNAME="$FPREFIX/hc128/$i"
-	./hc128 $BLEN $KEY128 > $FNAME &
+	bin/hc128 $BLEN $KEY128 > $FNAME &
 	P11=$!
 	
 	FNAME="$FPREFIX/rabbit/$i"
-	./rabbit $BLEN $KEY128 > $FNAME &
+	bin/rabbit $BLEN $KEY128 > $FNAME &
 	P12=$!
 	
 	FNAME="$FPREFIX/trivium/$i"
-	./trivium $BLEN $KEY80 > $FNAME &
+	bin/trivium $BLEN $KEY80 > $FNAME &
 	P13=$!
 	
 	FNAME="$FPREFIX/sosemanuk/$i"
-	./trivium $BLEN $KEY256 > $FNAME &
+	bin/sosemanuk $BLEN $KEY256 > $FNAME &
 	P14=$!
 	
 	FNAME="$FPREFIX/salsa20/$i"
-	./trivium $BLEN $KEY256 > $FNAME &
+	bin/salsa20 $BLEN $KEY256 > $FNAME &
 	P15=$!
 	
 	FNAME="$FPREFIX/grain/$i"
-	./trivium $BLEN $KEY128 > $FNAME &
+	bin/grain $BLEN $KEY128 > $FNAME &
 	P16=$!
 	
 	FNAME="$FPREFIX/mickey/$i"
-	./trivium $BLEN $KEY128 > $FNAME &
+	bin/mickey $BLEN $KEY128 > $FNAME &
 	P17=$!
 	
 	wait $P0
@@ -200,5 +203,7 @@ for i in $(seq 1 $NSEQ); do
 	generate $i "seq/N" $IHEX
 	IHEX=`echo "$i" | sha256sum | cut -c1-64`
 	generate $i "seq/R" $IHEX
-	echo "$i / $NSEQ"
+	if ! (($i % 100)); then
+		echo "$i / $NSEQ"
+	fi
 done

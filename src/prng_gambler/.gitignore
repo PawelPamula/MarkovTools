@@ -1,15 +1,4 @@
 seq
-c_rand
-randu
-hc128
-spritz
-vmpc
-rc4p
-rabbit
-trivium
-mickey
-grain
-ffcsr
+bin
 results.csv
-los-rng
 
