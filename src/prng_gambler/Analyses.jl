@@ -117,8 +117,12 @@ function runOnSources(i, N, p, str_p, q, str_q, runs)
 					"BitTracker    " BitTracker;
 					"BitSlicer8    " x -> BitSlicer(x, 8);
 					"BitSlicerInv8 " x -> BitSlicerInv(x, 8);
+					"BitSlicer12   " x -> BitSlicer(x, 12);
+					"BitSlicerInv12" x -> BitSlicerInv(x, 12);
 					"BitSlicer15   " x -> BitSlicer(x, 15);
 					"BitSlicerInv15" x -> BitSlicerInv(x, 15);
+					"BitSlicer16   " x -> BitSlicer(x, 16);
+					"BitSlicerInv16" x -> BitSlicerInv(x, 16);
 					"BitSlicer17   " x -> BitSlicer(x, 17);
 					"BitSlicerInv17" x -> BitSlicerInv(x, 17);
 				#	"BitSlicer31   " x -> BitSlicer(x, 31);
@@ -150,6 +154,7 @@ function runOnSources(i, N, p, str_p, q, str_q, runs)
 		simulation_type, simulation = simulations[rs,:]
 		
 		random_sources = pmap(simulation, to_bs(file))
+		gc()
 		
 		analysis = AnalyzeGambler1D(random_sources, i, N, p, q, Gambler.stepRegular)
 
@@ -161,6 +166,7 @@ function runOnSources(i, N, p, str_p, q, str_q, runs)
 		fvrho = Float32(rho_variance)
 		fmrho = Float32(mean_variance)
 		write(out_file, join((str_p, str_q, N, runs, i, simulation_type, lbl, rho, ratio, rho_variance, mean_variance, "-", timeavg, timevar, timevicavg, timevicvar, timedefavg, timedefvar), ","), "\n")
+		flush(out_file)
 		println("$lbl $simulation_type $analysis diff.: $fdiff v_rho: $fvrho v_mean: $fmrho")
 	end
 	close(out_file)

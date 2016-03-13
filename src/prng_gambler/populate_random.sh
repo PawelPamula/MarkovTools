@@ -198,12 +198,23 @@ function generate # $1: index number $2: file prefix $3: cipher key
 	wait $P17
 }
 
+function s_to_mm_ss # $1 seconds
+{
+	MIN=$(($1/60))
+	SEC=$(($1%60))
+	printf "%d:%02d" $MIN $SEC
+}
+
 for i in $(seq 1 $NSEQ); do 
 	IHEX=`echo "obase=16; $i" | bc`
 	generate $i "seq/N" $IHEX
 	IHEX=`echo "$i" | sha256sum | cut -c1-64`
 	generate $i "seq/R" $IHEX
-	if ! (($i % 100)); then
-		echo "$i / $NSEQ"
+	if ! (($i % 128)); then
+		ELAPSED=`s_to_mm_ss $SECONDS`
+		CPS=$(($i/$SECONDS))
+		ETA=$((($NSEQ-$i)/$CPS))
+		ETA=`s_to_mm_ss $ETA`
+		echo "$i / $NSEQ   $CPS cps in $ELAPSED eta $ETA"
 	fi
 done
