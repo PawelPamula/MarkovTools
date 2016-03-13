@@ -8,7 +8,7 @@ fi
 
 # the sequences are BLEN bytes long
 if [ -z "$BLEN" ]; then
-	BLEN=65536
+	BLEN=$((256*1024))
 fi
 
 mkdir -p bin
@@ -34,7 +34,7 @@ mkdir -p seq/{N,R}/mickey
 
 #
 # Generate NSEQ random sequences from various sources:
-# (the sequences have length of $BLEN, 64 KB by default)
+# (the sequences have length of $BLEN, 256 KB by default)
 #
 # seq/N - the key/seed of each sequence is serial, i.e. 1, 2, 3, ... NSEQ
 # seq/R - the key/seed of each sequence is psudorandom 

@@ -42,6 +42,15 @@ type BitSeq
     end
 end #type BitSeq
 
+function clean(bits::BitSeq)
+	bits.data = []
+	bits.dataL = 0
+	bits.wordIndex = 1
+	bits.bitIndex = 0
+	bits.tempWord = 0
+	gc()
+end
+
 function reset(bits::BitSeq)
     bits.wordIndex = 1;
     bits.bitIndex = 0;
@@ -62,7 +71,7 @@ function next(bits::BitSeq)
             bits.tempWord = bits.data[bits.wordIndex];
         end
     end
-    res
+    return res
 end
 
 function getNrOfBytes(bits::BitSeq)
@@ -274,6 +283,8 @@ function fileToBitSeq(filename::AbstractString)
 	Bytes = readbytes(Stream)
 	close(Stream)
 	UInt32s = reinterpret(UInt32, Bytes)
+	Bytes = []
+	gc()
 	return BitSeq(UInt32s)
 end
 

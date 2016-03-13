@@ -3,39 +3,114 @@ module RandSources
 export BitTracker,
 	   BitSlicer,
 	   BitSlicerInv,
-	   bitSeqBitSource
+	   bitSeqBitSource,
+       init, fini, nextbit
 
+using FileSources
 using BitSeqModule
+
+
+abstract BitSource
+
+
+function init(src::BitSource)
+end
+
+function fini(src::BitSource)
+end
+
+function repr(src::BitSource) = "Generic BitSource"
+
+
+# -------------------------------------------------------
+
+type JuliaBitSource <: BitSource
+end
+function repr(src::JuliaBitSource) = "Julia rand(0:1) BitSource"
+
+type BrokenBitSource <: BitSource
+	brokenBit::Int
+	function BrokenBitSource()
+		this = new()
+		this.brokenBit = 1
+		return this
+	end
+end
+function repr(src::BrokenBitSource) = "Utterly Broken LCG BitSource"
+
 
 """
 Simple, Julia bit source. Tosses a die using Julia's internal rand
 algorithm.
 """
-function juliaBitSource() return rand(0:1) == 1 end
+function nextbit(_::JuliaBitSource) return rand(0:1) == 1 end
 
 """
 Simple, broken bit source.
 """
-global brokenBit = 1
-function brokenBitSource()
-	global brokenBit
-	brokenBit *= 53
-	brokenBit %= 79
-	return (brokenBit % 2 == 0)
+function nextbit(src::BrokenBitSource)
+	src.brokenBit *= 53
+	src.brokenBit %= 79
+	return (src.brokenBit % 2 == 0)
 end
 
+
+# -------------------------------------------------------
+
+type BitSeqBitSource <: BitSource
+	sequence::BitSeq
+
+	function BitSeqBitSource(sequence::BitSeq)
+		this = new()
+		this.sequence = sequence
+		return this
+	end
+end
+function repr(src::BitSeqBitSource) = "Generic Bit Sequence BitSource"
 
 """
 Bit source returning consecutive bits from a given bit sequence in each
 function call.
 """
-function bitSeqBitSource(sequence::BitSeq)
-	NF =
-		function()
-			return BitSeqModule.next(sequence) == 1
-		end
-	return NF
+function nextbit(src::BitSeqBitSource)
+	return BitSeqModule.next(src.sequence) == 1
 end
+
+# -------------------------------------------------------
+
+type FileBitSource <: BitSource
+	sequence::StreamSource
+
+	function FileBitSource(sequence::StreamSource)
+		this = new()
+		this.sequence = sequence
+		return this
+	end
+end
+function repr(src::FileBitSource)
+	filename=src.sequence.filename
+	return "File: $filename BitSource"
+end
+
+
+"""
+Bit source returning consecutive bits from a given stream source in each
+function call.
+"""
+function nextbit(src::FileBitSource)
+	return FileSources.next(src.sequence) == 1
+end
+
+function init(src::FileBitSource)
+	FileSources.start(src.sequence)
+end
+
+function fini(src::FileBitSource)
+	FileSources.stop(src.sequence)
+end
+
+
+# -------------------------------------------------------
 
 
 """
@@ -110,7 +185,7 @@ function BitTracker(bitSource)
 			ranges = [p, pplusq]
 			rrange = checkInRangesRev(IntervalR, ranges)
 			while lrange != rrange
-				bit = bitSource()
+				bit = nextbit(bitSource)
 				if bit
 					IntervalL += Step
 					lrange = checkInRanges(IntervalL, ranges)
@@ -157,7 +232,7 @@ function BitTrackerND(bitSource)
 			
 			# While the whole interval is not within [0, p) or [p, p+q) or [p+q, 1)
 			while lrange != rrange
-				bit = bitSource()
+				bit = nextbit(bitSource)
 				if bit
 					IntervalL += Step
 					lrange = checkInRanges(IntervalL, ranges)
@@ -196,7 +271,7 @@ function BitSlicer(bitSource, length::Integer)
 			Step = 1
 			X = 0
 			for i in 1:length
-				bit = bitSource() 
+				bit = nextbit(bitSource)
 				if bit
 					X += Step
 				end
@@ -230,7 +305,7 @@ function BitSlicerND(bitSource, length::Integer)
 			Step = 1
 			X = 0
 			for i in 1:length
-				bit = bitSource() 
+				bit = nextbit(bitSource)
 				if bit
 					X += Step
 				end
@@ -267,7 +342,7 @@ function BitSlicerInv(bitSource, length::Integer)
 			Step = 1//2
 			X = 0
 			for i in 1:length
-				bit = bitSource() 
+				bit = nextbit(bitSource)
 				if bit
 					X += Step
 				end
@@ -298,7 +373,7 @@ function BitSlicerInvND(bitSource, length::Integer)
 			Step = 1//2
 			X = 0
 			for i in 1:length
-				bit = bitSource() 
+				bit = nextbit(bitSource)
 				if bit
 					X += Step
 				end
@@ -321,3 +396,4 @@ end
 
 
 end #module
+

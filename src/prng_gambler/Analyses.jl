@@ -5,6 +5,7 @@ export AnalyzeGambler1D
 using RandSources
 using Gambler
 using BitSeqModule
+using FileSources
 
 """
 Simple Gambler analyzer. Runs Gambler's ruin process with given @start, 
@@ -16,25 +17,31 @@ total time of all games, average game time.
 	averaged win/total ratio, total time of all games and the average
 	time of one game.
 """
-function AnalyzeGambler1D(randomSources, start::Int64, limit::Int64, p, q, 
+function AnalyzeGambler1D(bitSources, simulation, start::Int64, limit::Int64, p, q, 
 stepFunction, stepWin::Int64=1, stepLoss::Int64=-1, stepNone::Int64=0)
 		
 	join(a, b) = ([a[1]; b[1]], [a[2]; b[2]])
 	
 	function just_run(source)
 		try
-			(t, w) = runGambler(Gambler1D(start, limit, p, q, stepWin, stepLoss, stepNone), stepFunction, source)
+			init(source)
+			rand_source = simulation(source)
+			(t, w) = runGambler(Gambler1D(start, limit, p, q, stepWin, stepLoss, stepNone), stepFunction, rand_source)
+            fini(source)
 			if w
 				return (t, [])
 			else
 				return ([], t)
 			end
 		catch EOFError
+			srcrep = repr(source)
+			print("Encountered EOF when processing $srcrep\n")
+			fini(source)
 			return ([], [])
 		end
 	end
 	
-	(ArrVic, ArrDef) = @parallel (join) for source in randomSources; just_run(source) end
+	(ArrVic, ArrDef) = @parallel (join) for source in bitSources; just_run(source) end
 	
 	Wins  = length(ArrVic)
 	Losses = length(ArrDef)
@@ -84,15 +91,21 @@ function runTest(runs)
 	#
 	p(i::Int64, N::Int64) = (i)//(2*i + 1)
 	q(i::Int64, N::Int64) = (i+1)//(2*i + 1)
+	runOnSources(100, 300, p, "(i)/(2i+1)", q, "(i+1)/(2i+1)", runs)
+	runOnSources(150, 300, p, "(i)/(2i+1)", q, "(i+1)/(2i+1)", runs)
 	runOnSources(200, 300, p, "(i)/(2i+1)", q, "(i+1)/(2i+1)", runs)
 
 	p(i::Int64, N::Int64) =   (i)^3//(2*i^3 + 3*i^2 + 3*i + 1)
 	q(i::Int64, N::Int64) = (i+1)^3//(2*i^3 + 3*i^2 + 3*i + 1)
+	runOnSources(100, 300, p, "(i)^3/(2*i^3+3*i^2+3*i+1)", q, "(i+1)^3/(2*i^3+3*i^2+3*i+1)", runs)
+	runOnSources(150, 300, p, "(i)^3/(2*i^3+3*i^2+3*i+1)", q, "(i+1)^3/(2*i^3+3*i^2+3*i+1)", runs)
 	runOnSources(200, 300, p, "(i)^3/(2*i^3+3*i^2+3*i+1)", q, "(i+1)^3/(2*i^3+3*i^2+3*i+1)", runs)
 
 	p(i::Int64, N::Int64) = i//N
 	q(i::Int64, N::Int64) = (N-i)//N
+	runOnSources(100, 300, p, "i/N", q, "(N-i)/N", runs)
 	runOnSources(150, 300, p, "i/N", q, "(N-i)/N", runs)
+	runOnSources(200, 300, p, "i/N", q, "(N-i)/N", runs)
 end
 
 function runOnSources(i, N, p, str_p, q, str_q, runs)	
@@ -104,27 +117,28 @@ function runOnSources(i, N, p, str_p, q, str_q, runs)
 	
 	# Functions for creating bit source
 	bs_from_file(file) = [
-		RandSources.bitSeqBitSource(BitSeqModule.fileToBitSeq("seq/R$file$i"))
+		RandSources.BitSeqBitSource(BitSeqModule.fileToBitSeq("seq/R$file$i"))
+		#RandSources.FileBitSource(FileSources.StreamSource("seq/R$file$i"))
 		for i=1:runs
 		]
 	
-	bs_from_broken(_) = [RandSources.brokenBitSource for i in 1:runs]
+	bs_from_broken(_) = [RandSources.BrokenBitSource() for i in 1:runs]
 	
-	bs_from_julia(_) = [RandSources.juliaBitSource for i in 1:runs]
+	bs_from_julia(_) = [RandSources.JuliaBitSource() for i in 1:runs]
 	
 	# Functions for creating random source from bit source
 	simulations = [
 					"BitTracker    " BitTracker;
-					"BitSlicer8    " x -> BitSlicer(x, 8);
-					"BitSlicerInv8 " x -> BitSlicerInv(x, 8);
-					"BitSlicer12   " x -> BitSlicer(x, 12);
-					"BitSlicerInv12" x -> BitSlicerInv(x, 12);
+				#	"BitSlicer8    " x -> BitSlicer(x, 8);
+				#	"BitSlicerInv8 " x -> BitSlicerInv(x, 8);
+				#	"BitSlicer12   " x -> BitSlicer(x, 12);
+				#	"BitSlicerInv12" x -> BitSlicerInv(x, 12);
 					"BitSlicer15   " x -> BitSlicer(x, 15);
 					"BitSlicerInv15" x -> BitSlicerInv(x, 15);
-					"BitSlicer16   " x -> BitSlicer(x, 16);
-					"BitSlicerInv16" x -> BitSlicerInv(x, 16);
-					"BitSlicer17   " x -> BitSlicer(x, 17);
-					"BitSlicerInv17" x -> BitSlicerInv(x, 17);
+				#	"BitSlicer16   " x -> BitSlicer(x, 16);
+				#	"BitSlicerInv16" x -> BitSlicerInv(x, 16);
+				#	"BitSlicer17   " x -> BitSlicer(x, 17);
+				#	"BitSlicerInv17" x -> BitSlicerInv(x, 17);
 				#	"BitSlicer31   " x -> BitSlicer(x, 31);
 				#	"BitSlicerInv31" x -> BitSlicerInv(x, 31);
 				]
@@ -133,17 +147,17 @@ function runOnSources(i, N, p, str_p, q, str_q, runs)
 			#	"Broken 01010101 " ""            bs_from_broken;
 				"Julia Rand(0:1) " ""            bs_from_julia;
 				"/dev/urandom    " "/urand/"     bs_from_file;
-				"OpenSSL-RNG     " "/openssl/"   bs_from_file;
+			#	"OpenSSL-RNG     " "/openssl/"   bs_from_file;
 				"OpenSSL-RC4     " "/rc4/"       bs_from_file;
-				"SPRITZ          " "/spritz/"    bs_from_file;
-				"VMPC-KSA        " "/vmpc/"      bs_from_file;
-				"RC4+            " "/rc4p/"      bs_from_file;
-				"AES-128-CTR     " "/aes128ctr/" bs_from_file;
-				"AES-192-CTR     " "/aes192ctr/" bs_from_file;
-				"AES-256-CTR     " "/aes256ctr/" bs_from_file;
-				"C RAND          " "/crand/"     bs_from_file;
-				"RANDU LCG       " "/randu/"     bs_from_file;
-				"HC128           " "/hc128/"     bs_from_file;
+			#	"SPRITZ          " "/spritz/"    bs_from_file;
+			#	"VMPC-KSA        " "/vmpc/"      bs_from_file;
+			#	"RC4+            " "/rc4p/"      bs_from_file;
+			#	"AES-128-CTR     " "/aes128ctr/" bs_from_file;
+			#	"AES-192-CTR     " "/aes192ctr/" bs_from_file;
+			#	"AES-256-CTR     " "/aes256ctr/" bs_from_file;
+			#	"C RAND          " "/crand/"     bs_from_file;
+			#	"RANDU LCG       " "/randu/"     bs_from_file;
+			#	"HC128           " "/hc128/"     bs_from_file;
 			]
 	
 	out_file = open("./results.csv", "w")
@@ -153,10 +167,10 @@ function runOnSources(i, N, p, str_p, q, str_q, runs)
 		lbl, file, to_bs = sources[bs,:]
 		simulation_type, simulation = simulations[rs,:]
 		
-		random_sources = pmap(simulation, to_bs(file))
+		bit_sources    = to_bs(file)
 		gc()
 		
-		analysis = AnalyzeGambler1D(random_sources, i, N, p, q, Gambler.stepRegular)
+		analysis = AnalyzeGambler1D(bit_sources, simulation, i, N, p, q, Gambler.stepRegular)
 
 		wins, loses, total, ratio, timeavg, timevar, timevicavg, timevicvar, timedefavg, timedefvar = analysis
 		rho_variance = (wins * ((1 - rho)^2) + loses * ((0 - rho)^2)) / total
