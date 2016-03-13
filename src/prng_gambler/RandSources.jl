@@ -4,7 +4,7 @@ export BitTracker,
 	   BitSlicer,
 	   BitSlicerInv,
 	   bitSeqBitSource,
-       init, fini, nextbit
+       init, fini, nextbit, rep
 
 using FileSources
 using BitSeqModule
@@ -19,14 +19,14 @@ end
 function fini(src::BitSource)
 end
 
-function repr(src::BitSource) = "Generic BitSource"
+rep(src::BitSource) = "Generic BitSource"
 
 
 # -------------------------------------------------------
 
 type JuliaBitSource <: BitSource
 end
-function repr(src::JuliaBitSource) = "Julia rand(0:1) BitSource"
+rep(src::JuliaBitSource) = "Julia rand(0:1) BitSource"
 
 type BrokenBitSource <: BitSource
 	brokenBit::Int
@@ -36,7 +36,7 @@ type BrokenBitSource <: BitSource
 		return this
 	end
 end
-function repr(src::BrokenBitSource) = "Utterly Broken LCG BitSource"
+rep(src::BrokenBitSource) = "Utterly Broken LCG BitSource"
 
 
 """
@@ -66,7 +66,7 @@ type BitSeqBitSource <: BitSource
 		return this
 	end
 end
-function repr(src::BitSeqBitSource) = "Generic Bit Sequence BitSource"
+rep(src::BitSeqBitSource) = "Generic Bit Sequence BitSource"
 
 """
 Bit source returning consecutive bits from a given bit sequence in each
@@ -87,7 +87,7 @@ type FileBitSource <: BitSource
 		return this
 	end
 end
-function repr(src::FileBitSource)
+function rep(src::FileBitSource)
 	filename=src.sequence.filename
 	return "File: $filename BitSource"
 end
