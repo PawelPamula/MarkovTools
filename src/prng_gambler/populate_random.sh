@@ -1,7 +1,6 @@
 #!/bin/bash
 
-NSEQ=1024
-BLEN=$((64*1024))
+
 # make NSEQ random sequences
 if [ -z "$NSEQ" ]; then
 	NSEQ=4096
