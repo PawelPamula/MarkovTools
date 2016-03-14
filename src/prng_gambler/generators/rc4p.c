@@ -14,7 +14,8 @@
  * U can use stream function consecutively as many times as you like.
  * 
  * Note that (according to Subhamoy and Goutam)
- * iv should be of the same length as key.
+ * iv should be of the same length as key
+ * to avoid Time Memory Trade-Off attacks.
  ********************/
 
 
@@ -37,9 +38,9 @@ typedef struct {
 
 void layer1(RC4p_State* state, unsigned char* key, int key_len)
 {
-	for(int i=0; i<256; ++i) state->S[i] = i;
+	for(int i = 0; i < 256; ++i) state->S[i] = i;
 	state->j = 0;
-	for(int i=0; i<256; ++i)
+	for(int i = 0; i < 256; ++i)
 	{
 		state->j = (state->j + state->S[i] + key[i % key_len]) & 255;
 		swap(state->S, i, state->j);
@@ -48,13 +49,13 @@ void layer1(RC4p_State* state, unsigned char* key, int key_len)
 
 void layer2(RC4p_State* state, unsigned char* key, int key_len, unsigned char* iv, int iv_len)
 {
-	for(int i=127; i>=0; --i)
+	for(int i = 127; i >= 0; --i)
 	{
 		state->j = ((state->j + state->S[i]) ^ (key[i % key_len] + iv[i % iv_len])) & 255;
 		swap(state->S, i, state->j);
 	}
 	
-	for(int i =128; i<256; ++i)
+	for(int i = 128; i < 256; ++i)
 	{
 		state->j = ((state->j + state->S[i]) ^ (key[i % key_len] + iv[i % iv_len])) & 255;
 		swap(state->S, i, state->j);
@@ -66,8 +67,7 @@ void layer3(RC4p_State* state, unsigned char* key, int key_len)
 	int i;
 	for(int y=0; y<256; ++y)
 	{
-		if(y & 1 == 0) i = y >> 1;
-		else i = 256 - (y + 1) >> 1;
+		i = y & 1 ? 256 - ((y + 1) >> 1) : y >> 1
 		state->j = (state->j + state->S[i] + key[i % key_len]) & 255;
 		swap(state->S, i, state->j);
 	}
