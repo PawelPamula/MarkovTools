@@ -34,7 +34,6 @@ int main(int argc, const char* argv[])
 	ECRYPT_init();
 	ECRYPT_keysetup(&ctx, key, KEY_LEN, IV_LEN);
 	ECRYPT_ivsetup(&ctx, iv);
-	
 	for(int i=0; i<length; i+=16)
 	{
 		ECRYPT_process_bytes(0, &ctx, msg, output, 16);

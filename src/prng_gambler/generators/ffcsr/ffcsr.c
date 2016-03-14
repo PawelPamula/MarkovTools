@@ -12,7 +12,7 @@
      * Technical remarks and questions can be addressed to
      * <cedric.lauradoux@inria.fr>
      */
-
+#define ECRYPT_API
 #ifndef ECRYPT_API
 #define FFCSRH_EVALUATE
 #endif
@@ -83,6 +83,7 @@ void ECRYPT_process_bytes(
 	{
 		ECRYPT_clock(ctx);
 		output[i] = input[i] ^ ECRYPT_filter(ctx);
+		printf("%d ", output[i]);
 	}
 }
 

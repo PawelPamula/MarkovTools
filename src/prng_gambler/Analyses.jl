@@ -27,7 +27,7 @@ stepFunction, stepWin::Int64=1, stepLoss::Int64=-1, stepNone::Int64=0)
 			init(source)
 			rand_source = simulation(source)
 			(t, w) = runGambler(Gambler1D(start, limit, p, q, stepWin, stepLoss, stepNone), stepFunction, rand_source)
-            fini(source)
+			fini(source)
 			if w
 				return (t, [])
 			else

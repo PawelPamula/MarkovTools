@@ -3,11 +3,13 @@
 
 # make NSEQ random sequences
 if [ -z "$NSEQ" ]; then
+	#NSEQ=1024
 	NSEQ=4096
 fi
 
 # the sequences are BLEN bytes long
 if [ -z "$BLEN" ]; then
+	#BLEN=$((64*1024))
 	BLEN=$((256*1024))
 fi
 
@@ -51,12 +53,12 @@ mkdir -p seq/{N,R}/mickey
 # seq/*/crand/*			: sequence of first bytes of C rand() function
 # seq/*/randu/*			: sequence of first two bytes of RANDU function
 # seq/*/hc128/*			: sequence from hc128
-# seq/*/rabbit			: sequence from rabbit (eSTREAM implementation)
-# seq/*/trivium			: sequence from trivium (eSTREAM implementation)
-# seq/*/sosemanuk		: sequence from sosemanuk (eSTREAM implementation)
-# seq/*/salsa20			: sequence from salsa20 (eSTREAM implementation)
-# seq/*/grain			: sequence from grain (eSTREAM implementation)
-# seq/*/mickey			: sequence from mickey (eSTREAM implementation)
+# seq/*/rabbit/*		: sequence from rabbit (eSTREAM implementation)
+# seq/*/trivium/*		: sequence from trivium (eSTREAM implementation)
+# seq/*/sosemanuk/*		: sequence from sosemanuk (eSTREAM implementation)
+# seq/*/salsa20/*		: sequence from salsa20 (eSTREAM implementation)
+# seq/*/grain/*			: sequence from grain (eSTREAM implementation)
+# seq/*/mickey/*		: sequence from mickey (eSTREAM implementation)
 
 function compileSmallC # $1: generator name
 {
@@ -68,7 +70,7 @@ function compileSmallC # $1: generator name
 function compileEstream # $1: generator name
 {
 	if [ ! -f bin/$1 ]; then
-		gcc --std=c99 generators/common/ecrypt-sync.c generators/$1/$1.c generators/$1/$1_gen.c -o bin/$1 -iquote generators/common -iquote generators/$1
+		gcc --std=c99 generators/common/ecrypt-sync.c generators/$1/$1.c generators/common/gen.c -o bin/$1 -iquote generators/common -iquote generators/$1
 	fi
 }
 
