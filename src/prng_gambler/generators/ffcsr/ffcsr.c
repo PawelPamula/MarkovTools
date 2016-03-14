@@ -83,7 +83,6 @@ void ECRYPT_process_bytes(
 	{
 		ECRYPT_clock(ctx);
 		output[i] = input[i] ^ ECRYPT_filter(ctx);
-		printf("%d ", output[i]);
 	}
 }
 

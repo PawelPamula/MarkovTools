@@ -33,6 +33,7 @@ mkdir -p seq/{N,R}/sosemanuk
 mkdir -p seq/{N,R}/salsa20
 mkdir -p seq/{N,R}/grain
 mkdir -p seq/{N,R}/mickey
+mkdir -p seq/{N,R}/ffcsr
 
 #
 # Generate NSEQ random sequences from various sources:
@@ -59,6 +60,7 @@ mkdir -p seq/{N,R}/mickey
 # seq/*/salsa20/*		: sequence from salsa20 (eSTREAM implementation)
 # seq/*/grain/*			: sequence from grain (eSTREAM implementation)
 # seq/*/mickey/*		: sequence from mickey (eSTREAM implementation)
+# seq/*/ffcsr/*			: sequence from ffcsr (eSTREAM implementation 80bit key)
 
 function compileSmallC # $1: generator name
 {
@@ -91,6 +93,7 @@ compileEstream "sosemanuk"
 compileEstream "salsa20"
 compileEstream "grain"
 compileEstream "mickey"
+compileEstream "ffcsr"
 
 function generate # $1: index number $2: file prefix $3: cipher key
 {
@@ -180,6 +183,10 @@ function generate # $1: index number $2: file prefix $3: cipher key
 	bin/mickey $BLEN $KEY128 > $FNAME &
 	P17=$!
 	
+	FNAME="$FPREFIX/ffcsr/$i"
+	bin/ffcsr $BLEN $KEY80 > $FNAME &
+	P18=$!
+	
 	wait $P0
 	wait $P1
 	wait $P2
@@ -198,6 +205,7 @@ function generate # $1: index number $2: file prefix $3: cipher key
 	wait $P15
 	wait $P16
 	wait $P17
+	wait $P18
 }
 
 function s_to_mm_ss # $1 seconds

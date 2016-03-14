@@ -37,11 +37,11 @@
  * All sizes are in bits.
  */
               
-#define ECRYPT_MAXKEYSIZE 128
-#define ECRYPT_KEYSIZE(i) (128 + (i)*32)
+#define ECRYPT_MAXKEYSIZE 80
+#define ECRYPT_KEYSIZE(i) (80 + (i)*32)
 
-#define ECRYPT_MAXIVSIZE 128
-#define ECRYPT_IVSIZE(i) (128 + (i)*32)
+#define ECRYPT_MAXIVSIZE 80
+#define ECRYPT_IVSIZE(i) (80 + (i)*32)
 
 /* ------------------------------------------------------------------------- */
 
@@ -181,7 +181,7 @@ void ECRYPT_decrypt_bytes(
  * reset the ECRYPT_GENERATES_KEYSTREAM flag.
  */
 
-#define ECRYPT_GENERATES_KEYSTREAM
+// #define ECRYPT_GENERATES_KEYSTREAM
 #ifdef ECRYPT_GENERATES_KEYSTREAM
 
 void ECRYPT_keystream_bytes(

@@ -158,6 +158,13 @@ function runOnSources(i, N, p, str_p, q, str_q, runs)
 			#	"C RAND          " "/crand/"     bs_from_file;
 			#	"RANDU LCG       " "/randu/"     bs_from_file;
 			#	"HC128           " "/hc128/"     bs_from_file;
+			#	"RABBIT          " "/rabbit/"    bs_from_file;
+			#	"SALSA20/12      " "/salsa20/"   bs_from_file;
+			#	"SOSEMANUK       " "/sosemanuk/" bs_from_file;
+			#	"GRAIN           " "/grain/"     bs_from_file;
+			#	"MICKEY          " "/mickey/"    bs_from_file;
+			#	"TRIVIUM         " "/trivium/"   bs_from_file;
+			#	"F-FCSR          " "/ffcsr/"     bs_from_file;
 			]
 	
 	out_file = open("./results.csv", "w")
