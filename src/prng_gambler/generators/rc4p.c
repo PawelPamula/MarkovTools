@@ -67,7 +67,7 @@ void layer3(RC4p_State* state, unsigned char* key, int key_len)
 	int i;
 	for(int y=0; y<256; ++y)
 	{
-		i = y & 1 ? 256 - ((y + 1) >> 1) : y >> 1
+		i = y & 1 ? 256 - ((y + 1) >> 1) : y >> 1;
 		state->j = (state->j + state->S[i] + key[i % key_len]) & 255;
 		swap(state->S, i, state->j);
 	}

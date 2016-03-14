@@ -1,15 +1,14 @@
 #!/bin/bash
 
-
+NSEQ=1024
+BLEN=$((64*1024))
 # make NSEQ random sequences
 if [ -z "$NSEQ" ]; then
-	#NSEQ=1024
 	NSEQ=4096
 fi
 
 # the sequences are BLEN bytes long
 if [ -z "$BLEN" ]; then
-	#BLEN=$((64*1024))
 	BLEN=$((256*1024))
 fi
 
@@ -65,14 +64,14 @@ mkdir -p seq/{N,R}/ffcsr
 function compileSmallC # $1: generator name
 {
 	if [ ! -f bin/$1 ]; then
-		gcc --std=c99 generators/$1.c -o bin/$1
+		gcc --std=c99 generators/$1.c -o bin/$1 -O3
 	fi
 }
 
 function compileEstream # $1: generator name
 {
 	if [ ! -f bin/$1 ]; then
-		gcc --std=c99 generators/common/ecrypt-sync.c generators/$1/$1.c generators/common/gen.c -o bin/$1 -iquote generators/common -iquote generators/$1
+		gcc --std=c99 generators/common/ecrypt-sync.c generators/$1/$1.c generators/common/gen.c -o bin/$1 -iquote generators/common -iquote generators/$1 -O3
 	fi
 }
 
@@ -84,7 +83,7 @@ compileSmallC "randu"
 compileSmallC "hc128"
 
 if [ ! -f bin/los-rng ]; then
-	g++ --std=c++11 generators/los-rng.cpp -o bin/los-rng
+	g++ --std=c++11 generators/los-rng.cpp -o bin/los-rng -O3
 fi
 
 compileEstream "rabbit"
@@ -220,11 +219,12 @@ for i in $(seq 1 $NSEQ); do
 	generate $i "seq/N" $IHEX
 	IHEX=`echo "$i" | sha256sum | cut -c1-64`
 	generate $i "seq/R" $IHEX
-	if ! (($i % 128)); then
+	if ! (($i % 8)); then
 		ELAPSED=`s_to_mm_ss $SECONDS`
 		CPS=$(($i/$SECONDS))
 		ETA=$((($NSEQ-$i)/$CPS))
 		ETA=`s_to_mm_ss $ETA`
-		echo "$i / $NSEQ   $CPS cps in $ELAPSED eta $ETA"
+		printf "\r$i / $NSEQ   $CPS cps in $ELAPSED eta $ETA"
 	fi
 done
+echo ""

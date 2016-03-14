@@ -13,41 +13,43 @@ BLLEN=$(($BLEN/1024))
 
 FNAME="tmp.out"
 
-echo /dev/urandom
+printf "\n/dev/urandom"
 time dd if=/dev/urandom of=$FNAME count=$BLLEN bs=1KiB iflag=fullblock status=none
-echo openssl rand
+printf "\nopenssl rand"
 time openssl rand -out $FNAME $BLEN
-echo openssl rc4
+printf "\nopenssl rc4"
 time head -c $BLEN /dev/zero | openssl rc4 -out $FNAME -K $KEY128
-echo spritz
+printf "\nspritz"
 time bin/spritz $BLEN $KEY128 > $FNAME
-echo vmpc
+printf "\nvmpc"
 time bin/vmpc $BLEN $KEY128 > $FNAME
-echo rc4+
+printf "\nrc4+"
 time bin/rc4p $BLEN $KEY128 > $FNAME
-echo aes128ctr
+printf "\naes128ctr"
 time head -c $BLEN /dev/zero | openssl enc -aes-128-ctr -out $FNAME -K $KEY128 -iv $IHEX
-echo aes192ctr
+printf "\naes192ctr"
 time head -c $BLEN /dev/zero | openssl enc -aes-192-ctr -out $FNAME -K $KEY192 -iv $IHEX
-echo aes256ctr
+printf "\naes256ctr"
 time head -c $BLEN /dev/zero | openssl enc -aes-256-ctr -out $FNAME -K $KEY256 -iv $IHEX
-echo c_rand
+printf "\nc_rand"
 time bin/c_rand $BLEN $DKEY32 > $FNAME
-echo randu
+printf "\nrandu"
 time bin/randu $BLEN $DKEY32 > $FNAME
-echo hc128
+printf "\nhc128"
 time bin/hc128 $BLEN $KEY128 > $FNAME
-echo rabbit
+printf "\nrabbit"
 time bin/rabbit $BLEN $KEY128 > $FNAME
-echo trivium
+printf "\ntrivium"
 time bin/trivium $BLEN $KEY80 > $FNAME
-echo sosemanuk
+printf "\nsosemanuk"
 time bin/sosemanuk $BLEN $KEY256 > $FNAME
-echo salsa20
+printf "\nsalsa20"
 time bin/salsa20 $BLEN $KEY256 > $FNAME
-echo grain
+printf "\ngrain"
 time bin/grain $BLEN $KEY128 > $FNAME
-echo mickey
+printf "\nmickey"
 time bin/mickey $BLEN $KEY128 > $FNAME
+printf "\nf-fcsr"
+time bin/ffcsr $BLEN $KEY80 > $FNAME
 
 rm $FNAME
