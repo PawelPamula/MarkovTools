@@ -79,36 +79,42 @@ function EstimateResultsGambler1D(start::Int64, limit::Int64, p, q)
 end
 
 function runTest(runs)
+	out_file = open("./results.csv", "w")
+	write(out_file, "p(i), q(i), N, n, i_0, simulation type, generator, estimated rho(i), simulated rho(i), variance (est), variance (sim), error b, mean time, time variance, mean time to win, time to win variance, mean time to lose, time to lose variance\n")
+	
 	#
 	#  Constant p and q:
 	#
 	p(i::Int64, N::Int64) = 0.48
 	q(i::Int64, N::Int64) = 0.52
-	runOnSources(290, 300, p, "0.48", q, "0.52", runs)
+	runOnSources(out_file, 290, 300, p, "0.48", q, "0.52", runs)
+	runOnSources(out_file,  10, 300, q, "0.52", p, "0.48", runs)
 
 	#
 	#  Variable p and q:
 	#
 	p(i::Int64, N::Int64) = (i)//(2*i + 1)
 	q(i::Int64, N::Int64) = (i+1)//(2*i + 1)
-	runOnSources(100, 300, p, "(i)/(2i+1)", q, "(i+1)/(2i+1)", runs)
-	runOnSources(150, 300, p, "(i)/(2i+1)", q, "(i+1)/(2i+1)", runs)
-	runOnSources(200, 300, p, "(i)/(2i+1)", q, "(i+1)/(2i+1)", runs)
+	runOnSources(out_file, 100, 300, p, "(i)/(2i+1)", q, "(i+1)/(2i+1)", runs)
+	runOnSources(out_file, 150, 300, p, "(i)/(2i+1)", q, "(i+1)/(2i+1)", runs)
+	runOnSources(out_file, 200, 300, p, "(i)/(2i+1)", q, "(i+1)/(2i+1)", runs)
 
 	p(i::Int64, N::Int64) =   (i)^3//(2*i^3 + 3*i^2 + 3*i + 1)
 	q(i::Int64, N::Int64) = (i+1)^3//(2*i^3 + 3*i^2 + 3*i + 1)
-	runOnSources(100, 300, p, "(i)^3/(2*i^3+3*i^2+3*i+1)", q, "(i+1)^3/(2*i^3+3*i^2+3*i+1)", runs)
-	runOnSources(150, 300, p, "(i)^3/(2*i^3+3*i^2+3*i+1)", q, "(i+1)^3/(2*i^3+3*i^2+3*i+1)", runs)
-	runOnSources(200, 300, p, "(i)^3/(2*i^3+3*i^2+3*i+1)", q, "(i+1)^3/(2*i^3+3*i^2+3*i+1)", runs)
+	runOnSources(out_file, 100, 300, p, "(i)^3/(2*i^3+3*i^2+3*i+1)", q, "(i+1)^3/(2*i^3+3*i^2+3*i+1)", runs)
+	runOnSources(out_file, 150, 300, p, "(i)^3/(2*i^3+3*i^2+3*i+1)", q, "(i+1)^3/(2*i^3+3*i^2+3*i+1)", runs)
+	runOnSources(out_file, 200, 300, p, "(i)^3/(2*i^3+3*i^2+3*i+1)", q, "(i+1)^3/(2*i^3+3*i^2+3*i+1)", runs)
 
 	p(i::Int64, N::Int64) = i//N
 	q(i::Int64, N::Int64) = (N-i)//N
-	runOnSources(100, 300, p, "i/N", q, "(N-i)/N", runs)
-	runOnSources(150, 300, p, "i/N", q, "(N-i)/N", runs)
-	runOnSources(200, 300, p, "i/N", q, "(N-i)/N", runs)
+	runOnSources(out_file, 145, 300, p, "i/N", q, "(N-i)/N", runs)
+	runOnSources(out_file, 150, 300, p, "i/N", q, "(N-i)/N", runs)
+	runOnSources(out_file, 155, 300, p, "i/N", q, "(N-i)/N", runs)
+
+	close(out_file)
 end
 
-function runOnSources(i, N, p, str_p, q, str_q, runs)	
+function runOnSources(out_file, i, N, p, str_p, q, str_q, runs)	
 	(rho,) = EstimateResultsGambler1D(i, N, p, q)
 	rndrho = round(Int, rho * runs) // runs
 	
@@ -117,8 +123,8 @@ function runOnSources(i, N, p, str_p, q, str_q, runs)
 	
 	# Functions for creating bit source
 	bs_from_file(file) = [
-		RandSources.BitSeqBitSource(BitSeqModule.fileToBitSeq("seq/R$file$i"))
-		#RandSources.FileBitSource(FileSources.StreamSource("seq/R$file$i"))
+		#RandSources.BitSeqBitSource(BitSeqModule.fileToBitSeq("seq/R$file$i"))
+		RandSources.FileBitSource(FileSources.StreamSource("seq/R$file$i"))
 		for i=1:runs
 		]
 	
@@ -145,8 +151,8 @@ function runOnSources(i, N, p, str_p, q, str_q, runs)
 				
 	sources = [
 			#	"Broken 01010101 " ""            bs_from_broken;
-				"Julia Rand(0:1) " ""            bs_from_julia;
-				"/dev/urandom    " "/urand/"     bs_from_file;
+			#	"Julia Rand(0:1) " ""            bs_from_julia;
+			#	"/dev/urandom    " "/urand/"     bs_from_file;
 			#	"OpenSSL-RNG     " "/openssl/"   bs_from_file;
 				"OpenSSL-RC4     " "/rc4/"       bs_from_file;
 			#	"SPRITZ          " "/spritz/"    bs_from_file;
@@ -167,15 +173,12 @@ function runOnSources(i, N, p, str_p, q, str_q, runs)
 			#	"F-FCSR          " "/ffcsr/"     bs_from_file;
 			]
 	
-	out_file = open("./results.csv", "w")
-	write(out_file, "p(i), q(i), N, n, i_0, simulation type, generator, estimated rho(i), simulated rho(i), variance (est), variance (sim), error b, mean time, time variance, mean time to win, time to win variance, mean time to lose, time to lose variance\n")
-	
 	for bs in 1:size(sources,1), rs in 1:size(simulations,1)
 		lbl, file, to_bs = sources[bs,:]
 		simulation_type, simulation = simulations[rs,:]
 		
 		bit_sources    = to_bs(file)
-		gc()
+		#gc()
 		
 		analysis = AnalyzeGambler1D(bit_sources, simulation, i, N, p, q, Gambler.stepRegular)
 
@@ -190,7 +193,6 @@ function runOnSources(i, N, p, str_p, q, str_q, runs)
 		flush(out_file)
 		println("$lbl $simulation_type $analysis diff.: $fdiff v_rho: $fvrho v_mean: $fmrho")
 	end
-	close(out_file)
 end
 
 end #module

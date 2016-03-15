@@ -221,8 +221,12 @@ for i in $(seq 1 $NSEQ); do
 	if ! (($i % 8)); then
 		ELAPSED=`s_to_mm_ss $SECONDS`
 		CPS=$(($i/$SECONDS))
-		ETA=$((($NSEQ-$i)/$CPS))
-		ETA=`s_to_mm_ss $ETA`
+		if (($CPS)); then
+			ETA=$((($NSEQ-$i)/$CPS))
+			ETA=`s_to_mm_ss $ETA`
+		else
+			ETA="INF"
+		fi
 		printf "\r$i / $NSEQ   $CPS cps in $ELAPSED eta $ETA"
 	fi
 done
