@@ -29,15 +29,15 @@ stepFunction, stepWin::Int64=1, stepLoss::Int64=-1, stepNone::Int64=0)
 			(t, w) = runGambler(Gambler1D(start, limit, p, q, stepWin, stepLoss, stepNone), stepFunction, rand_source)
 			fini(source)
 			if w
-				return (t, [])
+				return (t, Int64[])
 			else
-				return ([], t)
+				return (Int64[], t)
 			end
 		catch EOFError
 			srcrep = repr(source)
 			print("Encountered EOF when processing $srcrep\n")
 			fini(source)
-			return ([], [])
+			return (Int64[], Int64[])
 		end
 	end
 	
