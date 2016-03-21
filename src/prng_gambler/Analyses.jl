@@ -55,9 +55,9 @@ stepFunction, stepWin::Int64=1, stepLoss::Int64=-1, stepNone::Int64=0)
 	AvgTimeVic = TotalTimeVic / Wins
 	AvgTimeDef = TotalTimeDef / Losses
 	
-	TimeVicVar = @parallel (+) for t in ArrVic; (t - AvgTimeVic)^2; end
+	TimeVicVar = length(ArrVic) > 0 ? (@parallel (+) for t in ArrVic; (t - AvgTimeVic)^2; end) : 0
 	TimeVicVar /= Wins - 1
-	TimeDefVar = @parallel (+) for t in ArrDef; (t - AvgTimeDef)^2; end
+	TimeDefVar = length(ArrDef) > 0 ? (@parallel (+) for t in ArrDef; (t - AvgTimeDef)^2; end) : 0
 	TimeDefVar /= Losses - 1
 	TimeVar = @parallel (+) for t in [ArrVic; ArrDef]; (t - AvgTime)^2; end
 	TimeVar /= Total - 1
@@ -70,7 +70,11 @@ function EstimateResultsGambler1D(start::Int64, limit::Int64, p, q)
 	i = start
 	N = limit
 	
-	divident = sum([prod([big(q(r, N) / p(r, N)) for r in 1:(n-1)]) for n in 2:i]) + 1
+	if i > 1
+		divident = sum([prod([big(q(r, N) / p(r, N)) for r in 1:(n-1)]) for n in 2:i]) + 1
+	else
+		divident = 1
+	end
 	divisor  = sum([prod([big(q(r, N) / p(r, N)) for r in 1:(n-1)]) for n in 2:N]) + 1
 	
 	rho = divident / divisor
@@ -83,33 +87,47 @@ function runTest(runs)
 	write(out_file, "p(i), q(i), N, n, i_0, simulation type, generator, estimated rho(i), simulated rho(i), variance (est), variance (sim), error b, mean time, time variance, mean time to win, time to win variance, mean time to lose, time to lose variance\n")
 	
 	#
+	#  All i in range:
+	#
+	p1(i::Int64, N::Int64) = 0.48
+	q1(i::Int64, N::Int64) = 0.52
+
+	p2(i::Int64, N::Int64) = (i)//(2*i + 1)
+	q2(i::Int64, N::Int64) = (i+1)//(2*i + 1)
+
+	for i in 1:299
+		runOnSources(out_file, i, 300, p1, "0.48", q1, "0.52", runs)
+		runOnSources(out_file, i, 300, p2, "(i)/(2i+1)", q2, "(i+1)/(2i+1)", runs)
+	end
+
+	#
 	#  Constant p and q:
 	#
 	p(i::Int64, N::Int64) = 0.48
 	q(i::Int64, N::Int64) = 0.52
-	runOnSources(out_file, 290, 300, p, "0.48", q, "0.52", runs)
-	runOnSources(out_file,  10, 300, q, "0.52", p, "0.48", runs)
+	#runOnSources(out_file, 290, 300, p, "0.48", q, "0.52", runs)
+	#runOnSources(out_file,  10, 300, q, "0.52", p, "0.48", runs)
 
 	#
 	#  Variable p and q:
 	#
 	p(i::Int64, N::Int64) = (i)//(2*i + 1)
 	q(i::Int64, N::Int64) = (i+1)//(2*i + 1)
-	runOnSources(out_file, 100, 300, p, "(i)/(2i+1)", q, "(i+1)/(2i+1)", runs)
-	runOnSources(out_file, 150, 300, p, "(i)/(2i+1)", q, "(i+1)/(2i+1)", runs)
-	runOnSources(out_file, 200, 300, p, "(i)/(2i+1)", q, "(i+1)/(2i+1)", runs)
+	#runOnSources(out_file, 100, 300, p, "(i)/(2i+1)", q, "(i+1)/(2i+1)", runs)
+	#runOnSources(out_file, 150, 300, p, "(i)/(2i+1)", q, "(i+1)/(2i+1)", runs)
+	#runOnSources(out_file, 200, 300, p, "(i)/(2i+1)", q, "(i+1)/(2i+1)", runs)
 
 	p(i::Int64, N::Int64) =   (i)^3//(2*i^3 + 3*i^2 + 3*i + 1)
 	q(i::Int64, N::Int64) = (i+1)^3//(2*i^3 + 3*i^2 + 3*i + 1)
-	runOnSources(out_file, 100, 300, p, "(i)^3/(2*i^3+3*i^2+3*i+1)", q, "(i+1)^3/(2*i^3+3*i^2+3*i+1)", runs)
-	runOnSources(out_file, 150, 300, p, "(i)^3/(2*i^3+3*i^2+3*i+1)", q, "(i+1)^3/(2*i^3+3*i^2+3*i+1)", runs)
-	runOnSources(out_file, 200, 300, p, "(i)^3/(2*i^3+3*i^2+3*i+1)", q, "(i+1)^3/(2*i^3+3*i^2+3*i+1)", runs)
+	#runOnSources(out_file, 100, 300, p, "(i)^3/(2*i^3+3*i^2+3*i+1)", q, "(i+1)^3/(2*i^3+3*i^2+3*i+1)", runs)
+	#runOnSources(out_file, 150, 300, p, "(i)^3/(2*i^3+3*i^2+3*i+1)", q, "(i+1)^3/(2*i^3+3*i^2+3*i+1)", runs)
+	#runOnSources(out_file, 200, 300, p, "(i)^3/(2*i^3+3*i^2+3*i+1)", q, "(i+1)^3/(2*i^3+3*i^2+3*i+1)", runs)
 
 	p(i::Int64, N::Int64) = i//N
 	q(i::Int64, N::Int64) = (N-i)//N
-	runOnSources(out_file, 145, 300, p, "i/N", q, "(N-i)/N", runs)
-	runOnSources(out_file, 150, 300, p, "i/N", q, "(N-i)/N", runs)
-	runOnSources(out_file, 155, 300, p, "i/N", q, "(N-i)/N", runs)
+	#runOnSources(out_file, 145, 300, p, "i/N", q, "(N-i)/N", runs)
+	#runOnSources(out_file, 150, 300, p, "i/N", q, "(N-i)/N", runs)
+	#runOnSources(out_file, 155, 300, p, "i/N", q, "(N-i)/N", runs)
 
 	close(out_file)
 end
@@ -139,8 +157,8 @@ function runOnSources(out_file, i, N, p, str_p, q, str_q, runs)
 				#	"BitSlicerInv8 " x -> BitSlicerInv(x, 8);
 				#	"BitSlicer12   " x -> BitSlicer(x, 12);
 				#	"BitSlicerInv12" x -> BitSlicerInv(x, 12);
-					"BitSlicer15   " x -> BitSlicer(x, 15);
-					"BitSlicerInv15" x -> BitSlicerInv(x, 15);
+				#	"BitSlicer15   " x -> BitSlicer(x, 15);
+				#	"BitSlicerInv15" x -> BitSlicerInv(x, 15);
 				#	"BitSlicer16   " x -> BitSlicer(x, 16);
 				#	"BitSlicerInv16" x -> BitSlicerInv(x, 16);
 				#	"BitSlicer17   " x -> BitSlicer(x, 17);
@@ -154,8 +172,8 @@ function runOnSources(out_file, i, N, p, str_p, q, str_q, runs)
 			#	"Julia Rand(0:1) " ""            bs_from_julia;
 			#	"/dev/urandom    " "/urand/"     bs_from_file;
 			#	"OpenSSL-RNG     " "/openssl/"   bs_from_file;
-				"OpenSSL-RC4     " "/rc4/"       bs_from_file;
-			#	"SPRITZ          " "/spritz/"    bs_from_file;
+			#	"OpenSSL-RC4     " "/rc4/"       bs_from_file;
+				"SPRITZ          " "/spritz/"    bs_from_file;
 			#	"VMPC-KSA        " "/vmpc/"      bs_from_file;
 			#	"RC4+            " "/rc4p/"      bs_from_file;
 			#	"AES-128-CTR     " "/aes128ctr/" bs_from_file;
@@ -189,7 +207,7 @@ function runOnSources(out_file, i, N, p, str_p, q, str_q, runs)
 		fdiff = Float32(rho - ratio)
 		fvrho = Float32(rho_variance)
 		fmrho = Float32(mean_variance)
-		write(out_file, join((str_p, str_q, N, runs, i, simulation_type, lbl, rho, ratio, rho_variance, mean_variance, "-", timeavg, timevar, timevicavg, timevicvar, timedefavg, timedefvar), ","), "\n")
+		write(out_file, join((str_p, str_q, N, runs, i, simulation_type, lbl, float(rho), float(ratio), rho_variance, mean_variance, "-", timeavg, timevar, timevicavg, timevicvar, timedefavg, timedefvar), ","), "\n")
 		flush(out_file)
 		println("$lbl $simulation_type $analysis diff.: $fdiff v_rho: $fvrho v_mean: $fmrho")
 	end
