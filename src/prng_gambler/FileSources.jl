@@ -1,6 +1,8 @@
 module FileSources
 
 export StreamSource,
+       FileSource,
+       CmdSource,
        reset,
        next,
        start,
@@ -53,8 +55,13 @@ function start(bits::FileSource)
 end
 
 function start(bits::CmdSource)
+	print("Starting ", bits.cmd, "\n")
 	bits.file, bits.proc = open(bits.cmd, "r")
+	
+	#sleep(0.01) 
+	
 	bits.tempWord = read(bits.file, UInt64)
+	print("Read first bytes\n")
 end
 
 function reset(bits::FileSource)
@@ -89,8 +96,9 @@ function stop(bits::FileSource)
 end
 
 function stop(bits::CmdSource)
+	readall(bits.file)
 	kill(bits.proc)
-	close(bits.file)
+	#close(bits.file)
 end
 
 end # Module

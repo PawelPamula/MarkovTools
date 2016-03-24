@@ -89,7 +89,7 @@ function runTest(runs)
 	#
 	p1(i::Int64, N::Int64) = 0.48
 	q1(i::Int64, N::Int64) = 0.52
-	#runOnSources(out_file, 290, 300, p1, "0.48", q1, "0.52", runs)
+	runOnSources(out_file, 290, 300, p1, "0.48", q1, "0.52", runs)
 	#runOnSources(out_file,  10, 300, q1, "0.52", p1, "0.48", runs)
 
 	#
@@ -117,7 +117,7 @@ function runTest(runs)
 	#  All i in range:
 	#
 	for i in 1:299
-		runOnSources(out_file, i, 300, p1, "0.48", q1, "0.52", runs)
+	#	runOnSources(out_file, i, 300, p1, "0.48", q1, "0.52", runs)
 	#	runOnSources(out_file, i, 300, p2, "(i)/(2i+1)", q2, "(i+1)/(2i+1)", runs)
 	#	runOnSources(out_file, i, 300, p3, "(i)^3/(2*i^3+3*i^2+3*i+1)", q3, "(i+1)^3/(2*i^3+3*i^2+3*i+1)", runs)
 	#	runOnSources(out_file, i, 300, p4, "i/N", q4, "(N-i)/N", runs)
@@ -180,7 +180,7 @@ function runOnSources(out_file, i, N, p, str_p, q, str_q, runs)
 			#	"Julia Rand(0:1) " ""            bs_from_julia;
 			#	"/dev/urandom    " "urandom"     bs_from_cmd;
 			#	"OpenSSL-RNG     " "openssl-rng" bs_from_cmd;
-			#	"OpenSSL-RC4     " "rc4"         bs_from_cmd;
+				"OpenSSL-RC4     " "rc4"         bs_from_cmd;
 			# 	"SPRITZ          " "spritz"      bs_from_cmd;
 			#	"VMPC-KSA        " "vmpc"        bs_from_cmd;
 			#	"RC4+            " "rc4p  "      bs_from_cmd;
@@ -197,7 +197,7 @@ function runOnSources(out_file, i, N, p, str_p, q, str_q, runs)
 			#	"MICKEY          " "mickey"      bs_from_cmd;
 			#	"TRIVIUM         " "trivium"     bs_from_cmd;
 			#	"F-FCSR          " "ffcsr"       bs_from_cmd;
-				"Mersenne Twister" "mersenne"    bs_from_cmd;
+			#	"Mersenne Twister" "mersenne"    bs_from_cmd;
 			]
 	
 	for bs in 1:size(sources,1), rs in 1:size(simulations,1)
@@ -223,3 +223,4 @@ function runOnSources(out_file, i, N, p, str_p, q, str_q, runs)
 end
 
 end #module
+
