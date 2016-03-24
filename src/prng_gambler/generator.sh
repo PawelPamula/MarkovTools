@@ -3,6 +3,8 @@
 #
 # Usage: generator.sh [kdf: sha|hex|echo] [generator] [length] [keybase]
 
+DATE=`date`
+echo "$DATE $1 $2 $3 $4" >> generator.log
 
 # set the key derivation function [possible are sha, echo and hex]
 KDF=$1

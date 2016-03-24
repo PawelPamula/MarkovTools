@@ -69,9 +69,11 @@ function EstimateResultsGambler1D(start::Int64, limit::Int64, p, q)
 	# Compute the expected probability of winning with the given start, limit, p and q:
 	i = start
 	N = limit
-	
-	divident = sum(BigInt[prod(BigInt[big(q(r, N) / p(r, N)) for r in 1:(n-1)]) for n in 2:i]) + 1
-	divisor  = sum(BigInt[prod(BigInt[big(q(r, N) / p(r, N)) for r in 1:(n-1)]) for n in 2:N]) + 1
+
+	divident = i>1 ? sum([prod([big(q(r, N) / p(r, N)) for r in 1:(n-1)]) for n in 2:i]) + 1 : 1
+	#divident = sum(BigInt[prod(BigInt[big(q(r, N) / p(r, N)) for r in 1:(n-1)]) for n in 2:i]) + 1
+	divisor  = N>1 ? sum([prod([big(q(r, N) / p(r, N)) for r in 1:(n-1)]) for n in 2:N]) + 1 : 1
+	#divisor  = sum(BigInt[prod(BigInt[big(q(r, N) / p(r, N)) for r in 1:(n-1)]) for n in 2:N]) + 1
 	
 	rho = divident / divisor
 	
@@ -125,13 +127,13 @@ function runTest(runs)
 end
 
 function runOnSources(out_file, i, N, p, str_p, q, str_q, runs)
-	# byte limit for dynamically generated sources
-	limit = 256*1024
-	# key derivation function
-	kdf = "sha"
-	function generator(cmd, run)
-		km = run + i * runs
-		return `./generator.sh $kdf $cmd $limit $km`
+	function generator(cmd, r)
+		# byte limit for dynamically generated sources
+		limit = 256*1024
+		# key derivation function
+		kdf = "sha"
+		km = r + (i * runs)
+		return `bash generator.sh $kdf $cmd $limit $km`
 	end
 
 	(rho,) = EstimateResultsGambler1D(i, N, p, q)

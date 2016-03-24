@@ -30,6 +30,7 @@ end # FileSource
 type CmdSource <: StreamSource
 	cmd::Cmd
 	file
+	proc
 	
     wordIndex::Int64
     bitIndex::Int64
@@ -52,7 +53,7 @@ function start(bits::FileSource)
 end
 
 function start(bits::CmdSource)
-	bits.file, _  = open(bits.cmd, "r")
+	bits.file, bits.proc = open(bits.cmd, "r")
 	bits.tempWord = read(bits.file, UInt64)
 end
 
@@ -83,7 +84,12 @@ function next(bits::StreamSource)
 	return res
 end
 
-function stop(bits::StreamSource)
+function stop(bits::FileSource)
+	close(bits.file)
+end
+
+function stop(bits::CmdSource)
+	kill(bits.proc)
 	close(bits.file)
 end
 
