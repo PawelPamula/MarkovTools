@@ -33,6 +33,7 @@ type CmdSource <: StreamSource
 	cmd::Cmd
 	file
 	proc
+	tmpf::AbstractString
 	
     wordIndex::Int64
     bitIndex::Int64
@@ -55,13 +56,14 @@ function start(bits::FileSource)
 end
 
 function start(bits::CmdSource)
-	print("Starting ", bits.cmd, "\n")
-	bits.file, bits.proc = open(bits.cmd, "r")
-	
-	#sleep(0.01) 
-	
+	tmpfname ="/run/shm/bits-" * randstring(16)
+	bits.tmpf=tmpfname
+
+	touch(tmpfname)
+	run(pipeline(bits.cmd, tmpfname))
+
+	bits.file = open(bits.tmpf, "r")
 	bits.tempWord = read(bits.file, UInt64)
-	print("Read first bytes\n")
 end
 
 function reset(bits::FileSource)
@@ -96,9 +98,8 @@ function stop(bits::FileSource)
 end
 
 function stop(bits::CmdSource)
-	readall(bits.file)
-	kill(bits.proc)
-	#close(bits.file)
+	close(bits.file)
+	rm(bits.tmpf)
 end
 
 end # Module

@@ -89,7 +89,7 @@ function runTest(runs)
 	#
 	p1(i::Int64, N::Int64) = 0.48
 	q1(i::Int64, N::Int64) = 0.52
-	runOnSources(out_file, 290, 300, p1, "0.48", q1, "0.52", runs)
+	#runOnSources(out_file, 290, 300, p1, "0.48", q1, "0.52", runs)
 	#runOnSources(out_file,  10, 300, q1, "0.52", p1, "0.48", runs)
 
 	#
@@ -117,10 +117,10 @@ function runTest(runs)
 	#  All i in range:
 	#
 	for i in 1:299
-	#	runOnSources(out_file, i, 300, p1, "0.48", q1, "0.52", runs)
-	#	runOnSources(out_file, i, 300, p2, "(i)/(2i+1)", q2, "(i+1)/(2i+1)", runs)
-	#	runOnSources(out_file, i, 300, p3, "(i)^3/(2*i^3+3*i^2+3*i+1)", q3, "(i+1)^3/(2*i^3+3*i^2+3*i+1)", runs)
-	#	runOnSources(out_file, i, 300, p4, "i/N", q4, "(N-i)/N", runs)
+		runOnSources(out_file, i, 300, p1, "0.48", q1, "0.52", runs)
+		runOnSources(out_file, i, 300, p2, "(i)/(2i+1)", q2, "(i+1)/(2i+1)", runs)
+		runOnSources(out_file, i, 300, p3, "(i)^3/(2*i^3+3*i^2+3*i+1)", q3, "(i+1)^3/(2*i^3+3*i^2+3*i+1)", runs)
+		runOnSources(out_file, i, 300, p4, "i/N", q4, "(N-i)/N", runs)
 	end
 
 	close(out_file)

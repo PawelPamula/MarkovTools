@@ -1,6 +1,6 @@
 #!/bin/bash
 
->&2 echo "start - $1 $2 $3 $4"
+#>&2 echo "start - $1 $2 $3 $4"
 
 #
 # Usage: generator.sh [kdf: sha|hex|echo] [generator] [length] [keybase]
@@ -194,18 +194,19 @@ function mersenne # [length] [keybase]
 	bin/los-rng Mersenne $1 $DKEY64
 }
 
-function buffer # passes arguments
-{
-	FN="/run/shm/$1-$2-$3"
-	#>&2 echo "$FN"
-	$1 $2 $3 > $FN
-	cat $FN
-	rm $FN
-}
+#function buffer # passes arguments
+#{
+#	FN="/run/shm/$1-$2-$3"
+#	#>&2 echo "$FN"
+#	$1 $2 $3 > $FN
+#	cat $FN
+#	rm $FN
+#}
 
-buffer $2 $3 $4
+$2 $3 $4
+
 # close the file descriptor:
 exec 1>&-
 
->&2 echo "stop  - $1 $2 $3 $4"
+#>&2 echo "stop  - $1 $2 $3 $4"
 
