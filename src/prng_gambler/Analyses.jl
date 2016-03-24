@@ -70,12 +70,8 @@ function EstimateResultsGambler1D(start::Int64, limit::Int64, p, q)
 	i = start
 	N = limit
 	
-	if i > 1
-		divident = sum([prod([big(q(r, N) / p(r, N)) for r in 1:(n-1)]) for n in 2:i]) + 1
-	else
-		divident = 1
-	end
-	divisor  = sum([prod([big(q(r, N) / p(r, N)) for r in 1:(n-1)]) for n in 2:N]) + 1
+	divident = sum(BigInt[prod(BigInt[big(q(r, N) / p(r, N)) for r in 1:(n-1)]) for n in 2:i]) + 1
+	divisor  = sum(BigInt[prod(BigInt[big(q(r, N) / p(r, N)) for r in 1:(n-1)]) for n in 2:N]) + 1
 	
 	rho = divident / divisor
 	
