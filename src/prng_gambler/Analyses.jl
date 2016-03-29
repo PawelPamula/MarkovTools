@@ -180,7 +180,7 @@ function runOnSources(out_file, i, N, p, str_p, q, str_q, runs)
 			#	"Julia Rand(0:1) " ""            bs_from_julia;
 			#	"/dev/urandom    " "urandom"     bs_from_cmd;
 			#	"OpenSSL-RNG     " "openssl-rng" bs_from_cmd;
-				"OpenSSL-RC4     " "rc4"         bs_from_cmd;
+			#	"OpenSSL-RC4     " "rc4"         bs_from_cmd;
 			# 	"SPRITZ          " "spritz"      bs_from_cmd;
 			#	"VMPC-KSA        " "vmpc"        bs_from_cmd;
 			#	"RC4+            " "rc4p  "      bs_from_cmd;
@@ -191,7 +191,7 @@ function runOnSources(out_file, i, N, p, str_p, q, str_q, runs)
 			#	"RANDU LCG       " "randu"       bs_from_cmd;
 			#	"HC128           " "hc128"       bs_from_cmd;
 			#	"RABBIT          " "rabbit"      bs_from_cmd;
-			#	"SALSA20/12      " "salsa20"     bs_from_cmd;
+				"SALSA20/12      " "salsa20"     bs_from_cmd;
 			#	"SOSEMANUK       " "sosemanuk"   bs_from_cmd;
 			#	"GRAIN           " "grain"       bs_from_cmd;
 			#	"MICKEY          " "mickey"      bs_from_cmd;

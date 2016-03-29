@@ -14,6 +14,9 @@ KDF=$1
 # set the default IV for the ciphers
 IHEX=00000000000000000000000000000000
 
+source ensure_generators.sh
+
+
 function sha # $1 keybase # hashes keybase and returns hex
 {
 	echo $1 | sha256sum | cut -c1-64
