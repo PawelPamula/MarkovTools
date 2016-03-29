@@ -11,6 +11,9 @@ echo "$DATE $1 $2 $3 $4" >> generator.log
 # set the key derivation function [possible are sha, echo and hex]
 KDF=$1
 
+# set the default IV for the ciphers
+IHEX=00000000000000000000000000000000
+
 function sha # $1 keybase # hashes keybase and returns hex
 {
 	echo $1 | sha256sum | cut -c1-64
@@ -113,19 +116,19 @@ function rc4p # [length] [keybase]
 function aes128ctr # [length] [keybase]
 {
 	KEY128=`kdf128 $2`
-	head -c $1 /dev/zero | openssl enc -aes-128-ctr -out $FNAME -K $KEY128 -iv $IHEX
+	head -c $1 /dev/zero | openssl enc -aes-128-ctr -iv $IHEX -K $KEY128 2>tmp.log
 }
 
 function aes192ctr # [length] [keybase]
 {
 	KEY192=`kdf192 $2`
-	head -c $1 /dev/zero | openssl enc -aes-192-ctr -out $FNAME -K $KEY192 -iv $IHEX
+	head -c $1 /dev/zero | openssl enc -aes-192-ctr -iv $IHEX -K $KEY128 2>tmp.log
 }
 
 function aes256ctr # [length] [keybase]
 {
 	KEY256=`kdf256 $2`
-	head -c $1 /dev/zero | openssl enc -aes-256-ctr -out $FNAME -K $KEY256 -iv $IHEX
+	head -c $1 /dev/zero | openssl enc -aes-256-ctr -iv $IHEX -K $KEY128 2>tmp.log
 }
 
 function c_rand # [length] [keybase]
