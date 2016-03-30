@@ -1,6 +1,6 @@
 module Analyses
 
-export AnalyzeGambler1D
+export AnalyzeGambler1D, EstimateResultsGambler1D
 
 using RandSources
 using Gambler
@@ -77,7 +77,23 @@ function EstimateResultsGambler1D(start::Int64, limit::Int64, p, q)
 	
 	rho = divident / divisor
 	
-	return (rho,)
+	return rho
+end
+
+function filedPQ(filename)
+	ps = []
+	qs = []
+	open(filename) do file
+		for line in eachline(file)
+			tp = split(line, ", ")
+			append!(ps, [float(tp[2])])
+			append!(qs, [float(tp[3])])
+		end
+	end
+	pf(r, N) = ps[r]
+	qf(r, N) = qs[r]
+
+	return (pf, qf)
 end
 
 function runTest(runs)
@@ -113,14 +129,21 @@ function runTest(runs)
 	#runOnSources(out_file, 150, 300, p4, "i/N", q4, "(N-i)/N", runs)
 	#runOnSources(out_file, 155, 300, p4, "i/N", q4, "(N-i)/N", runs)
 
+	(p5, q5) = filedPQ("random_p_q_1.csv")
+	#runOnSources(out_file, 150, 300, p5, "random(1)", q5, "random(1)", runs)
+	(p6, q6) = filedPQ("random_p_q_7.csv")
+	runOnSources(out_file, 50, 300, p6, "random(2)", q6, "random(2)", runs)
+	#runOnSources(out_file, 150, 300, p6, "random(2)", q6, "random(2)", runs)
+
 	#
 	#  All i in range:
 	#
 	for i in 1:299
-		runOnSources(out_file, i, 300, p1, "0.48", q1, "0.52", runs)
-		runOnSources(out_file, i, 300, p2, "(i)/(2i+1)", q2, "(i+1)/(2i+1)", runs)
-		runOnSources(out_file, i, 300, p3, "(i)^3/(2*i^3+3*i^2+3*i+1)", q3, "(i+1)^3/(2*i^3+3*i^2+3*i+1)", runs)
-		runOnSources(out_file, i, 300, p4, "i/N", q4, "(N-i)/N", runs)
+	#	runOnSources(out_file, i, 300, p1, "0.48", q1, "0.52", runs)
+	#	runOnSources(out_file, i, 300, p2, "(i)/(2i+1)", q2, "(i+1)/(2i+1)", runs)
+	#	runOnSources(out_file, i, 300, p3, "(i)^3/(2*i^3+3*i^2+3*i+1)", q3, "(i+1)^3/(2*i^3+3*i^2+3*i+1)", runs)
+	#	runOnSources(out_file, i, 300, p4, "i/N", q4, "(N-i)/N", runs)
+	#	runOnSources(out_file, i, 300, p6, "random(2)", q6, "random(2)", runs)
 	end
 
 	close(out_file)
@@ -129,14 +152,14 @@ end
 function runOnSources(out_file, i, N, p, str_p, q, str_q, runs)
 	function generator(cmd, r)
 		# byte limit for dynamically generated sources
-		limit = 256*1024
+		limit = 512*1024 #16*1024*1024
 		# key derivation function
 		kdf = "sha"
 		km = r + (i * runs)
 		return `bash generator.sh $kdf $cmd $limit $km`
 	end
 
-	(rho,) = EstimateResultsGambler1D(i, N, p, q)
+	rho = EstimateResultsGambler1D(i, N, p, q)
 	rndrho = round(Int, rho * runs) // runs
 	
 	@printf("Expected rho: %f ", float(rho))
@@ -181,7 +204,7 @@ function runOnSources(out_file, i, N, p, str_p, q, str_q, runs)
 			#	"/dev/urandom    " "urandom"     bs_from_cmd;
 			#	"OpenSSL-RNG     " "openssl-rng" bs_from_cmd;
 			#	"OpenSSL-RC4     " "rc4"         bs_from_cmd;
-			# 	"SPRITZ          " "spritz"      bs_from_cmd;
+			 	"SPRITZ          " "spritz"      bs_from_cmd;
 			#	"VMPC-KSA        " "vmpc"        bs_from_cmd;
 			#	"RC4+            " "rc4p  "      bs_from_cmd;
 			#	"AES-128-CTR     " "aes128ctr"   bs_from_cmd;
@@ -191,7 +214,7 @@ function runOnSources(out_file, i, N, p, str_p, q, str_q, runs)
 			#	"RANDU LCG       " "randu"       bs_from_cmd;
 			#	"HC128           " "hc128"       bs_from_cmd;
 			#	"RABBIT          " "rabbit"      bs_from_cmd;
-				"SALSA20/12      " "salsa20"     bs_from_cmd;
+			#	"SALSA20/12      " "salsa20"     bs_from_cmd;
 			#	"SOSEMANUK       " "sosemanuk"   bs_from_cmd;
 			#	"GRAIN           " "grain"       bs_from_cmd;
 			#	"MICKEY          " "mickey"      bs_from_cmd;
