@@ -1,12 +1,16 @@
 module FileSources
 
 export StreamSource,
+       FileSource,
+       CmdSource,
        reset,
        next,
        start,
        stop
 
-type StreamSource
+abstract StreamSource
+
+type FileSource <: StreamSource
 	filename::AbstractString
 	file::IOStream
 	
@@ -14,7 +18,7 @@ type StreamSource
     bitIndex::Int64
     tempWord::UInt64
 
-	function StreamSource(filename::AbstractString)
+	function FileSource(filename::AbstractString)
 		this = new()
 		this.filename = filename
 
@@ -25,12 +29,51 @@ type StreamSource
 	end
 end # FileSource
 
-function start(bits::StreamSource)
-	bits.file = open(bits.filename)
+type CmdSource <: StreamSource
+	cmd::Cmd
+	file
+	proc
+	tmpf::AbstractString
+	
+    wordIndex::Int64
+    bitIndex::Int64
+    tempWord::UInt64
+
+	function CmdSource(cmd)
+		this = new()
+		this.cmd = cmd
+
+		this.wordIndex = 0
+		this.bitIndex = 0
+		
+		return this
+	end
+end # FileSource
+
+function start(bits::FileSource)
+	bits.file = open(bits.filename, "r")
 	bits.tempWord = read(bits.file, UInt64)
 end
 
-function reset(bits::StreamSource)
+function start(bits::CmdSource)
+	tmpfname ="/run/shm/bits-" * randstring(16)
+	bits.tmpf=tmpfname
+
+	touch(tmpfname)
+	run(pipeline(bits.cmd, tmpfname))
+
+	bits.file = open(bits.tmpf, "r")
+	bits.tempWord = read(bits.file, UInt64)
+end
+
+function reset(bits::FileSource)
+	bits.wordIndex = 0
+	bits.bitIndex = 0
+	stop(bits)
+	start(bits)
+end
+
+function reset(bits::CmdSource)
 	bits.wordIndex = 0
 	bits.bitIndex = 0
 	seekstart(bits.file)
@@ -50,8 +93,13 @@ function next(bits::StreamSource)
 	return res
 end
 
-function stop(bits::StreamSource)
+function stop(bits::FileSource)
 	close(bits.file)
+end
+
+function stop(bits::CmdSource)
+	close(bits.file)
+	rm(bits.tmpf)
 end
 
 end # Module

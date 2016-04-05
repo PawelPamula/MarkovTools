@@ -11,7 +11,6 @@ if [ -z "$BLEN" ]; then
 	BLEN=$((256*1024))
 fi
 
-mkdir -p bin
 mkdir -p seq/{N,R}
 mkdir -p seq/{N,R}/urand
 mkdir -p seq/{N,R}/openssl
@@ -60,38 +59,7 @@ mkdir -p seq/{N,R}/ffcsr
 # seq/*/mickey/*		: sequence from mickey (eSTREAM implementation)
 # seq/*/ffcsr/*			: sequence from ffcsr (eSTREAM implementation 80bit key)
 
-function compileSmallC # $1: generator name
-{
-	if [ ! -f bin/$1 ]; then
-		gcc --std=c99 generators/$1.c -o bin/$1 -O3
-	fi
-}
-
-function compileEstream # $1: generator name
-{
-	if [ ! -f bin/$1 ]; then
-		gcc --std=c99 generators/common/ecrypt-sync.c generators/$1/$1.c generators/common/gen.c -o bin/$1 -iquote generators/common -iquote generators/$1 -O3
-	fi
-}
-
-compileSmallC "spritz"
-compileSmallC "vmpc"
-compileSmallC "rc4p"
-compileSmallC "c_rand"
-compileSmallC "randu"
-compileSmallC "hc128"
-
-if [ ! -f bin/los-rng ]; then
-	g++ --std=c++11 generators/los-rng.cpp -o bin/los-rng -O3
-fi
-
-compileEstream "rabbit"
-compileEstream "trivium"
-compileEstream "sosemanuk"
-compileEstream "salsa20"
-compileEstream "grain"
-compileEstream "mickey"
-compileEstream "ffcsr"
+source ensure_generators.sh
 
 function generate # $1: index number $2: file prefix $3: cipher key
 {

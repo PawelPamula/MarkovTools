@@ -1,6 +1,6 @@
 module Analyses
 
-export AnalyzeGambler1D
+export AnalyzeGambler1D, EstimateResultsGambler1D
 
 using RandSources
 using Gambler
@@ -97,7 +97,23 @@ function EstimateResultsGambler1D(start::Int64, limit::Int64, p, q)
 	
 	rho = divident / divisor
 	
-	return (rho,)
+	return rho
+end
+
+function filedPQ(filename)
+	ps = []
+	qs = []
+	open(filename) do file
+		for line in eachline(file)
+			tp = split(line, ", ")
+			append!(ps, [float(tp[2])])
+			append!(qs, [float(tp[3])])
+		end
+	end
+	pf(r, N) = ps[r]
+	qf(r, N) = qs[r]
+
+	return (pf, qf)
 end
 
 function runTest(runs)
@@ -105,53 +121,64 @@ function runTest(runs)
 	write(out_file, "p(i), q(i), N, n, i_0, simulation type, generator, estimated rho(i), simulated rho(i), variance (est), variance (sim), error b, mean time, time variance, mean time to win, time to win variance, mean time to lose, time to lose variance\n")
 	
 	#
-	#  All i in range:
+	#  Constant p and q:
 	#
 	p1(i::Int64, N::Int64) = 0.48
 	q1(i::Int64, N::Int64) = 0.52
-
-	p2(i::Int64, N::Int64) = (i)//(2*i + 1)
-	q2(i::Int64, N::Int64) = (i+1)//(2*i + 1)
-	
-	#for i in 1:299
-	#	runOnSources(out_file, i, 300, p1, "0.48", q1, "0.52", runs)
-	#	runOnSources(out_file, i, 300, p2, "(i)/(2i+1)", q2, "(i+1)/(2i+1)", runs)
-	#end
-	
-	#
-	#  Constant p and q:
-	#
-	p(i::Int64, N::Int64) = 0.48
-	q(i::Int64, N::Int64) = 0.52
-	runOnSources(out_file, 290, 300, p, "0.48", q, "0.52", runs)
-	#runOnSources(out_file,  10, 300, q, "0.52", p, "0.48", runs)
-
+	#runOnSources(out_file, 290, 300, p1, "0.48", q1, "0.52", runs)
+	#runOnSources(out_file,  10, 300, q1, "0.52", p1, "0.48", runs)
 	#
 	#  Variable p and q:
 	#
-	p(i::Int64, N::Int64) = (i)//(2*i + 1)
-	q(i::Int64, N::Int64) = (i+1)//(2*i + 1)
-	#runOnSources(out_file, 100, 300, p, "(i)/(2i+1)", q, "(i+1)/(2i+1)", runs)
-	runOnSources(out_file, 150, 300, p, "(i)/(2i+1)", q, "(i+1)/(2i+1)", runs)
-	#runOnSources(out_file, 200, 300, p, "(i)/(2i+1)", q, "(i+1)/(2i+1)", runs)
+	p2(i::Int64, N::Int64) = (i)//(2*i + 1)
+	q2(i::Int64, N::Int64) = (i+1)//(2*i + 1)
+	#runOnSources(out_file, 100, 300, p2, "(i)/(2i+1)", q2, "(i+1)/(2i+1)", runs)
+	#runOnSources(out_file, 150, 300, p2, "(i)/(2i+1)", q2, "(i+1)/(2i+1)", runs)
+	#runOnSources(out_file, 200, 300, p2, "(i)/(2i+1)", q2, "(i+1)/(2i+1)", runs)
 
-	p(i::Int64, N::Int64) =   (i)^3//(2*i^3 + 3*i^2 + 3*i + 1)
-	q(i::Int64, N::Int64) = (i+1)^3//(2*i^3 + 3*i^2 + 3*i + 1)
-	#runOnSources(out_file, 100, 300, p, "(i)^3/(2*i^3+3*i^2+3*i+1)", q, "(i+1)^3/(2*i^3+3*i^2+3*i+1)", runs)
-	#runOnSources(out_file, 150, 300, p, "(i)^3/(2*i^3+3*i^2+3*i+1)", q, "(i+1)^3/(2*i^3+3*i^2+3*i+1)", runs)
-	#runOnSources(out_file, 200, 300, p, "(i)^3/(2*i^3+3*i^2+3*i+1)", q, "(i+1)^3/(2*i^3+3*i^2+3*i+1)", runs)
+	p3(i::Int64, N::Int64) =   (i)^3//(2*i^3 + 3*i^2 + 3*i + 1)
+	q3(i::Int64, N::Int64) = (i+1)^3//(2*i^3 + 3*i^2 + 3*i + 1)
+	#runOnSources(out_file, 100, 300, p3, "(i)^3/(2*i^3+3*i^2+3*i+1)", q3, "(i+1)^3/(2*i^3+3*i^2+3*i+1)", runs)
+	#runOnSources(out_file, 150, 300, p3, "(i)^3/(2*i^3+3*i^2+3*i+1)", q3, "(i+1)^3/(2*i^3+3*i^2+3*i+1)", runs)
+	#runOnSources(out_file, 200, 300, p3, "(i)^3/(2*i^3+3*i^2+3*i+1)", q3, "(i+1)^3/(2*i^3+3*i^2+3*i+1)", runs)
 
-	p(i::Int64, N::Int64) = i//N
-	q(i::Int64, N::Int64) = (N-i)//N
-	#runOnSources(out_file, 145, 300, p, "i/N", q, "(N-i)/N", runs)
-	#runOnSources(out_file, 150, 300, p, "i/N", q, "(N-i)/N", runs)
-	#runOnSources(out_file, 155, 300, p, "i/N", q, "(N-i)/N", runs)
+	p4(i::Int64, N::Int64) = i//N
+	q4(i::Int64, N::Int64) = (N-i)//N
+	#runOnSources(out_file, 145, 300, p4, "i/N", q4, "(N-i)/N", runs)
+	#runOnSources(out_file, 150, 300, p4, "i/N", q4, "(N-i)/N", runs)
+	#runOnSources(out_file, 155, 300, p4, "i/N", q4, "(N-i)/N", runs)
+
+	(p5, q5) = filedPQ("random_p_q_1.csv")
+	#runOnSources(out_file, 150, 300, p5, "random(1)", q5, "random(1)", runs)
+	(p6, q6) = filedPQ("random_p_q_7.csv")
+	runOnSources(out_file, 50, 300, p6, "random(2)", q6, "random(2)", runs)
+	#runOnSources(out_file, 150, 300, p6, "random(2)", q6, "random(2)", runs)
+
+	#
+	#  All i in range:
+	#
+	for i in 1:299
+	#	runOnSources(out_file, i, 300, p1, "0.48", q1, "0.52", runs)
+	#	runOnSources(out_file, i, 300, p2, "(i)/(2i+1)", q2, "(i+1)/(2i+1)", runs)
+	#	runOnSources(out_file, i, 300, p3, "(i)^3/(2*i^3+3*i^2+3*i+1)", q3, "(i+1)^3/(2*i^3+3*i^2+3*i+1)", runs)
+	#	runOnSources(out_file, i, 300, p4, "i/N", q4, "(N-i)/N", runs)
+	#	runOnSources(out_file, i, 300, p6, "random(2)", q6, "random(2)", runs)
+	end
 
 	close(out_file)
 end
 
-function runOnSources(out_file, i, N, p, str_p, q, str_q, runs)	
-	(rho,) = EstimateResultsGambler1D(i, N, p, q)
+function runOnSources(out_file, i, N, p, str_p, q, str_q, runs)
+	function generator(cmd, r)
+		# byte limit for dynamically generated sources
+		limit = 512*1024 #16*1024*1024
+		# key derivation function
+		kdf = "sha"
+		km = r + (i * runs)
+		return `bash generator.sh $kdf $cmd $limit $km`
+	end
+
+	rho = EstimateResultsGambler1D(i, N, p, q)
 	rndrho = round(Int, rho * runs) // runs
 	
 	@printf("Expected rho: %f ", float(rho))
@@ -160,8 +187,13 @@ function runOnSources(out_file, i, N, p, str_p, q, str_q, runs)
 	# Functions for creating bit source
 	bs_from_file(file) = [
 		#RandSources.BitSeqBitSource(BitSeqModule.fileToBitSeq("seq/R$file$i"))
-		RandSources.FileBitSource(FileSources.StreamSource("seq/R$file$i"))
+		RandSources.FileBitSource(FileSources.FileSource("seq/R$file$i"))
 		for i=1:runs
+		]
+	
+	bs_from_cmd(cmd) = [
+		RandSources.FileBitSource(FileSources.CmdSource(generator(cmd, r)))
+		for r=1:runs
 		]
 	
 	bs_from_broken(_) = [RandSources.BrokenBitSource() for i in 1:runs]
@@ -188,25 +220,26 @@ function runOnSources(out_file, i, N, p, str_p, q, str_q, runs)
 	sources = [
 			#	"Broken 01010101 " ""            bs_from_broken;
 			#	"Julia Rand(0:1) " ""            bs_from_julia;
-			#	"/dev/urandom    " "/urand/"     bs_from_file;
-			#	"OpenSSL-RNG     " "/openssl/"   bs_from_file;
-			#	"OpenSSL-RC4     " "/rc4/"       bs_from_file;
-				"SPRITZ          " "/spritz/"    bs_from_file;
-			#	"VMPC-KSA        " "/vmpc/"      bs_from_file;
-			#	"RC4+            " "/rc4p/"      bs_from_file;
-			#	"AES-128-CTR     " "/aes128ctr/" bs_from_file;
-			#	"AES-192-CTR     " "/aes192ctr/" bs_from_file;
-			#	"AES-256-CTR     " "/aes256ctr/" bs_from_file;
-			#	"C RAND          " "/crand/"     bs_from_file;
-			#	"RANDU LCG       " "/randu/"     bs_from_file;
-			#	"HC128           " "/hc128/"     bs_from_file;
-			#	"RABBIT          " "/rabbit/"    bs_from_file;
-			#	"SALSA20/12      " "/salsa20/"   bs_from_file;
-			#	"SOSEMANUK       " "/sosemanuk/" bs_from_file;
-			#	"GRAIN           " "/grain/"     bs_from_file;
-			#	"MICKEY          " "/mickey/"    bs_from_file;
-			#	"TRIVIUM         " "/trivium/"   bs_from_file;
-			#	"F-FCSR          " "/ffcsr/"     bs_from_file;
+			#	"/dev/urandom    " "urandom"     bs_from_cmd;
+			#	"OpenSSL-RNG     " "openssl-rng" bs_from_cmd;
+			#	"OpenSSL-RC4     " "rc4"         bs_from_cmd;
+			 	"SPRITZ          " "spritz"      bs_from_cmd;
+			#	"VMPC-KSA        " "vmpc"        bs_from_cmd;
+			#	"RC4+            " "rc4p  "      bs_from_cmd;
+			#	"AES-128-CTR     " "aes128ctr"   bs_from_cmd;
+			#	"AES-192-CTR     " "aes192ctr"   bs_from_cmd;
+			#	"AES-256-CTR     " "aes256ctr"   bs_from_cmd;
+			#	"C RAND          " "crand"       bs_from_cmd;
+			#	"RANDU LCG       " "randu"       bs_from_cmd;
+			#	"HC128           " "hc128"       bs_from_cmd;
+			#	"RABBIT          " "rabbit"      bs_from_cmd;
+			#	"SALSA20/12      " "salsa20"     bs_from_cmd;
+			#	"SOSEMANUK       " "sosemanuk"   bs_from_cmd;
+			#	"GRAIN           " "grain"       bs_from_cmd;
+			#	"MICKEY          " "mickey"      bs_from_cmd;
+			#	"TRIVIUM         " "trivium"     bs_from_cmd;
+			#	"F-FCSR          " "ffcsr"       bs_from_cmd;
+			#	"Mersenne Twister" "mersenne"    bs_from_cmd;
 			]
 	
 	for bs in 1:size(sources,1), rs in 1:size(simulations,1)
@@ -226,10 +259,11 @@ function runOnSources(out_file, i, N, p, str_p, q, str_q, runs)
 		fdiff = Float32(rho - ratio)
 		fvrho = Float32(rho_variance)
 		fmrho = Float32(mean_variance)
-		write(out_file, join((str_p, str_q, N, runs, i, simulation_type, lbl, float(rho), float(ratio), rho_variance, mean_variance, "-", timeavg, timevar, timevicavg, timevicvar, timedefavg, timedefvar), ","), "\n")
+		write(out_file, join((str_p, str_q, N, runs, i, simulation_type, lbl, float(rho), float(ratio), float(rho_variance), float(mean_variance), "-", timeavg, timevar, timevicavg, timevicvar, timedefavg, timedefvar), ","), "\n")
 		flush(out_file)
 		println("$lbl $simulation_type $analysis diff.: $fdiff v_rho: $fvrho v_mean: $fmrho")
 	end
 end
 
 end #module
+
