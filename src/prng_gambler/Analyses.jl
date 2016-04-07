@@ -41,7 +41,32 @@ stepFunction, stepWin::Int64=1, stepLoss::Int64=-1, stepNone::Int64=0)
 		end
 	end
 	
-	(ArrVic, ArrDef) = @parallel (join) for source in bitSources; just_run(source) end
+	function map_run(source)
+		try
+			init(source)
+			rand_source = simulation(source)
+			(t, w) = runGambler(Gambler1D(start, limit, p, q, stepWin, stepLoss, stepNone), stepFunction, rand_source)
+			fini(source)
+			return (t, w)
+		catch EOFError
+			srcrep = repr(source)
+			print("Encountered EOF when processing $srcrep\n")
+			fini(source)
+			return (0, -1)
+		end
+	end
+			
+	ArrVic = Int64[]
+	ArrDef = Int64[]
+	# should be pmap for parallel, but makes no difference
+	for (val, win) in map(map_run, bitSources)
+		if win == 1
+			push!(ArrVic, val)
+		elseif win == 0
+			push!(ArrDef, val)
+		end
+	end
+	#(ArrVic, ArrDef) = @parallel (join) for source in bitSources; just_run(source) end
 	
 	Wins  = length(ArrVic)
 	Losses = length(ArrDef)
@@ -55,12 +80,9 @@ stepFunction, stepWin::Int64=1, stepLoss::Int64=-1, stepNone::Int64=0)
 	AvgTimeVic = TotalTimeVic / Wins
 	AvgTimeDef = TotalTimeDef / Losses
 	
-	TimeVicVar = length(ArrVic) > 0 ? (@parallel (+) for t in ArrVic; (t - AvgTimeVic)^2; end) : 0
-	TimeVicVar /= Wins - 1
-	TimeDefVar = length(ArrDef) > 0 ? (@parallel (+) for t in ArrDef; (t - AvgTimeDef)^2; end) : 0
-	TimeDefVar /= Losses - 1
-	TimeVar = @parallel (+) for t in [ArrVic; ArrDef]; (t - AvgTime)^2; end
-	TimeVar /= Total - 1
+	TimeVar = var([ArrVic;ArrDef])
+	TimeVicVar = var(ArrVic)
+	TimeDefVar = var(ArrDef)
 	
 	return (Wins, Losses, Total, float(Wins / Total), AvgTime, TimeVar, AvgTimeVic, TimeVicVar, AvgTimeDef, TimeDefVar)
 end
@@ -69,11 +91,9 @@ function EstimateResultsGambler1D(start::Int64, limit::Int64, p, q)
 	# Compute the expected probability of winning with the given start, limit, p and q:
 	i = start
 	N = limit
-
-	divident = i>1 ? sum([prod([big(q(r, N) / p(r, N)) for r in 1:(n-1)]) for n in 2:i]) + 1 : 1
-	#divident = sum(BigInt[prod(BigInt[big(q(r, N) / p(r, N)) for r in 1:(n-1)]) for n in 2:i]) + 1
-	divisor  = N>1 ? sum([prod([big(q(r, N) / p(r, N)) for r in 1:(n-1)]) for n in 2:N]) + 1 : 1
-	#divisor  = sum(BigInt[prod(BigInt[big(q(r, N) / p(r, N)) for r in 1:(n-1)]) for n in 2:N]) + 1
+	
+	divident = sum(BigFloat[prod(BigFloat[big(q(r, N) / p(r, N)) for r in 1:(n-1)]) for n in 2:i]) + 1
+	divisor  = sum(BigFloat[prod(BigFloat[big(q(r, N) / p(r, N)) for r in 1:(n-1)]) for n in i+1:N]) + divident
 	
 	rho = divident / divisor
 	
@@ -107,7 +127,6 @@ function runTest(runs)
 	q1(i::Int64, N::Int64) = 0.52
 	#runOnSources(out_file, 290, 300, p1, "0.48", q1, "0.52", runs)
 	#runOnSources(out_file,  10, 300, q1, "0.52", p1, "0.48", runs)
-
 	#
 	#  Variable p and q:
 	#
@@ -229,6 +248,7 @@ function runOnSources(out_file, i, N, p, str_p, q, str_q, runs)
 		
 		bit_sources    = to_bs(file)
 		#gc()
+		print(length(bit_sources))
 		
 		analysis = AnalyzeGambler1D(bit_sources, simulation, i, N, p, q, Gambler.stepRegular)
 
