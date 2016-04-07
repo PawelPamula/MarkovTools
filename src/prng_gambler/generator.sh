@@ -16,10 +16,12 @@ IHEX=00000000000000000000000000000000
 
 source ensure_generators.sh
 
+# base to be added to all sha kdfs
+ADD_BASE="GAMBLER_0001"
 
 function sha # $1 keybase # hashes keybase and returns hex
 {
-	echo $1 | sha256sum | cut -c1-64
+	echo "$ADD_BASE $1" | sha256sum | cut -c1-64
 }
 
 function hex # $1 keybase # interprets key as integer and returns hex repr.
@@ -29,7 +31,7 @@ function hex # $1 keybase # interprets key as integer and returns hex repr.
 
 function rel # $1 keybase 
 {
-	PREFIX=`sha GAMBLER_0001 | cut -c1-48`
+	PREFIX=`sha $ADD_BASE | cut -c1-48`
 	SUFFIX=`hex $1 | cut -c49-64`
 	echo "$PREFIX$SUFFIX"
 }
@@ -37,7 +39,7 @@ function rel # $1 keybase
 function wep # $1 keybase 
 {
 	PREFIX=`hex $1 | cut -c27-64`          #128 + 24 bits (first 128 gets cut with kdf128)
-	SUFFIX=`sha GAMBLER_0001 | cut -c1-26` #104 bits
+	SUFFIX=`sha $ADD_BASE | cut -c1-26` #104 bits
 	echo "$PREFIX$SUFFIX"
 }
 
