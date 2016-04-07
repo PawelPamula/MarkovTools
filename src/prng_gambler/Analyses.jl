@@ -132,17 +132,17 @@ function runTest(runs)
 	(p5, q5) = filedPQ("random_p_q_1.csv")
 	#runOnSources(out_file, 150, 300, p5, "random(1)", q5, "random(1)", runs)
 	(p6, q6) = filedPQ("random_p_q_7.csv")
-	runOnSources(out_file, 50, 300, p6, "random(2)", q6, "random(2)", runs)
+	#runOnSources(out_file, 50, 300, p6, "random(2)", q6, "random(2)", runs)
 	#runOnSources(out_file, 150, 300, p6, "random(2)", q6, "random(2)", runs)
 
 	#
 	#  All i in range:
 	#
-	for i in 1:299
+	for i in 7:99
 	#	runOnSources(out_file, i, 300, p1, "0.48", q1, "0.52", runs)
 	#	runOnSources(out_file, i, 300, p2, "(i)/(2i+1)", q2, "(i+1)/(2i+1)", runs)
 	#	runOnSources(out_file, i, 300, p3, "(i)^3/(2*i^3+3*i^2+3*i+1)", q3, "(i+1)^3/(2*i^3+3*i^2+3*i+1)", runs)
-	#	runOnSources(out_file, i, 300, p4, "i/N", q4, "(N-i)/N", runs)
+		runOnSources(out_file, i, 300, p4, "i/N", q4, "(N-i)/N", runs)
 	#	runOnSources(out_file, i, 300, p6, "random(2)", q6, "random(2)", runs)
 	end
 
@@ -204,14 +204,14 @@ function runOnSources(out_file, i, N, p, str_p, q, str_q, runs)
 			#	"/dev/urandom    " "urandom"     bs_from_cmd;
 			#	"OpenSSL-RNG     " "openssl-rng" bs_from_cmd;
 			#	"OpenSSL-RC4     " "rc4"         bs_from_cmd;
-			 	"SPRITZ          " "spritz"      bs_from_cmd;
+			#	"SPRITZ          " "spritz"      bs_from_cmd;
 			#	"VMPC-KSA        " "vmpc"        bs_from_cmd;
 			#	"RC4+            " "rc4p  "      bs_from_cmd;
 			#	"AES-128-CTR     " "aes128ctr"   bs_from_cmd;
 			#	"AES-192-CTR     " "aes192ctr"   bs_from_cmd;
 			#	"AES-256-CTR     " "aes256ctr"   bs_from_cmd;
 			#	"C RAND          " "crand"       bs_from_cmd;
-			#	"RANDU LCG       " "randu"       bs_from_cmd;
+				"RANDU LCG       " "randu"       bs_from_cmd;
 			#	"HC128           " "hc128"       bs_from_cmd;
 			#	"RABBIT          " "rabbit"      bs_from_cmd;
 			#	"SALSA20/12      " "salsa20"     bs_from_cmd;
