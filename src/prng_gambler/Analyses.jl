@@ -17,7 +17,7 @@ total time of all games, average game time.
 	averaged win/total ratio, total time of all games and the average
 	time of one game.
 """
-function AnalyzeGambler1D(bitSources, simulation, start::Int64, limit::Int64, p, q, 
+function AnalyzeGambler1D(bitSourcesFun, file, simulation, start::Int64, limit::Int64, p, q, 
 stepFunction, stepWin::Int64=1, stepLoss::Int64=-1, stepNone::Int64=0)
 		
 	join(a, b) = ([a[1]; b[1]], [a[2]; b[2]])
@@ -55,7 +55,9 @@ stepFunction, stepWin::Int64=1, stepLoss::Int64=-1, stepNone::Int64=0)
 			return (0, -1)
 		end
 	end
-			
+	
+	bitSources = bitSourcesFun(file)
+	
 	ArrVic = Int64[]
 	ArrDef = Int64[]
 	# should be pmap for parallel, but makes no difference
@@ -120,55 +122,58 @@ function runTest(runs)
 	out_file = open("./results.csv", "w")
 	write(out_file, "p(i), q(i), N, n, i_0, simulation type, generator, estimated rho(i), simulated rho(i), variance (est), variance (sim), error b, mean time, time variance, mean time to win, time to win variance, mean time to lose, time to lose variance\n")
 	
+	tests_params = []
+	
 	#
 	#  Constant p and q:
 	#
 	p1(i::Int64, N::Int64) = 0.48
 	q1(i::Int64, N::Int64) = 0.52
-	#runOnSources(out_file, 290, 300, p1, "0.48", q1, "0.52", runs)
-	#runOnSources(out_file,  10, 300, q1, "0.52", p1, "0.48", runs)
+	#push!(tests_params, (290, 300, p1, "0.48", q1, "0.52"))
+	#push!(tests_params, ( 10, 300, q1, "0.52", p1, "0.48"))
 	#
 	#  Variable p and q:
 	#
 	p2(i::Int64, N::Int64) = (i)//(2*i + 1)
 	q2(i::Int64, N::Int64) = (i+1)//(2*i + 1)
-	#runOnSources(out_file, 100, 300, p2, "(i)/(2i+1)", q2, "(i+1)/(2i+1)", runs)
-	#runOnSources(out_file, 150, 300, p2, "(i)/(2i+1)", q2, "(i+1)/(2i+1)", runs)
-	#runOnSources(out_file, 200, 300, p2, "(i)/(2i+1)", q2, "(i+1)/(2i+1)", runs)
+	#push!(tests_params, (100, 300, p2, "(i)/(2i+1)", q2, "(i+1)/(2i+1)"))
+	#push!(tests_params, (150, 300, p2, "(i)/(2i+1)", q2, "(i+1)/(2i+1)"))
+	#push!(tests_params, (200, 300, p2, "(i)/(2i+1)", q2, "(i+1)/(2i+1)"))
 
 	p3(i::Int64, N::Int64) =   (i)^3//(2*i^3 + 3*i^2 + 3*i + 1)
 	q3(i::Int64, N::Int64) = (i+1)^3//(2*i^3 + 3*i^2 + 3*i + 1)
-	#runOnSources(out_file, 100, 300, p3, "(i)^3/(2*i^3+3*i^2+3*i+1)", q3, "(i+1)^3/(2*i^3+3*i^2+3*i+1)", runs)
-	#runOnSources(out_file, 150, 300, p3, "(i)^3/(2*i^3+3*i^2+3*i+1)", q3, "(i+1)^3/(2*i^3+3*i^2+3*i+1)", runs)
-	#runOnSources(out_file, 200, 300, p3, "(i)^3/(2*i^3+3*i^2+3*i+1)", q3, "(i+1)^3/(2*i^3+3*i^2+3*i+1)", runs)
+	#push!(tests_params, (100, 300, p3, "(i)^3/(2*i^3+3*i^2+3*i+1)", q3, "(i+1)^3/(2*i^3+3*i^2+3*i+1)"))
+	#push!(tests_params, (150, 300, p3, "(i)^3/(2*i^3+3*i^2+3*i+1)", q3, "(i+1)^3/(2*i^3+3*i^2+3*i+1)"))
+	#push!(tests_params, (200, 300, p3, "(i)^3/(2*i^3+3*i^2+3*i+1)", q3, "(i+1)^3/(2*i^3+3*i^2+3*i+1)"))
 
 	p4(i::Int64, N::Int64) = i//N
 	q4(i::Int64, N::Int64) = (N-i)//N
-	#runOnSources(out_file, 145, 300, p4, "i/N", q4, "(N-i)/N", runs)
-	#runOnSources(out_file, 150, 300, p4, "i/N", q4, "(N-i)/N", runs)
-	#runOnSources(out_file, 155, 300, p4, "i/N", q4, "(N-i)/N", runs)
+	#push!(tests_params, (145, 300, p4, "i/N", q4, "(N-i)/N"))
+	#push!(tests_params, (150, 300, p4, "i/N", q4, "(N-i)/N"))
+	#push!(tests_params, (155, 300, p4, "i/N", q4, "(N-i)/N"))
 
 	(p5, q5) = filedPQ("random_p_q_1.csv")
-	#runOnSources(out_file, 150, 300, p5, "random(1)", q5, "random(1)", runs)
+	#push!(tests_params, (150, 300, p5, "random(1)", q5, "random(1)"))
 	(p6, q6) = filedPQ("random_p_q_7.csv")
-	runOnSources(out_file, 50, 300, p6, "random(2)", q6, "random(2)", runs)
-	#runOnSources(out_file, 150, 300, p6, "random(2)", q6, "random(2)", runs)
+	push!(tests_params, (50, 300, p6, "random(2)", q6, "random(2)"))
+	#push!(tests_params, (150, 300, p6, "random(2)", q6, "random(2)"))
 
 	#
 	#  All i in range:
 	#
 	for i in 1:299
-	#	runOnSources(out_file, i, 300, p1, "0.48", q1, "0.52", runs)
-	#	runOnSources(out_file, i, 300, p2, "(i)/(2i+1)", q2, "(i+1)/(2i+1)", runs)
-	#	runOnSources(out_file, i, 300, p3, "(i)^3/(2*i^3+3*i^2+3*i+1)", q3, "(i+1)^3/(2*i^3+3*i^2+3*i+1)", runs)
-	#	runOnSources(out_file, i, 300, p4, "i/N", q4, "(N-i)/N", runs)
-	#	runOnSources(out_file, i, 300, p6, "random(2)", q6, "random(2)", runs)
+	#	push!(tests_params, (i, 300, p1, "0.48", q1, "0.52"))
+	#	push!(tests_params, (i, 300, p2, "(i)/(2i+1)", q2, "(i+1)/(2i+1)"))
+	#	push!(tests_params, (i, 300, p3, "(i)^3/(2*i^3+3*i^2+3*i+1)", q3, "(i+1)^3/(2*i^3+3*i^2+3*i+1)"))
+	#	push!(tests_params, (i, 300, p4, "i/N", q4, "(N-i)/N"))
+	#	push!(tests_params, (i, 300, p6, "random(2)", q6, "random(2)"))
 	end
 
+	runOnSources(out_file, runs, tests_params)
 	close(out_file)
 end
 
-function runOnSources(out_file, i, N, p, str_p, q, str_q, runs)
+function runOnSources(out_file, runs, tests_params) # list of: (i, N, p, str_p, q, str_q)
 	function generator(cmd, r)
 		# byte limit for dynamically generated sources
 		limit = 512*1024 #16*1024*1024
@@ -177,12 +182,17 @@ function runOnSources(out_file, i, N, p, str_p, q, str_q, runs)
 		km = r + (i * runs)
 		return `bash generator.sh $kdf $cmd $limit $km`
 	end
-
-	rho = EstimateResultsGambler1D(i, N, p, q)
-	rndrho = round(Int, rho * runs) // runs
+	function append_rho(params)
+		i, N, p, str_p, q, str_q = params
+		rho = EstimateResultsGambler1D(i, N, p, q)
+		rndrho = round(Int, rho * runs) // runs
+		return i, N, p, str_p, q, str_q, runs, rho
+	end
 	
-	@printf("Expected rho: %f ", float(rho))
-	println("($rho) [$rndrho] for p: $str_p, q: $str_q")
+	tests_params = map(append_rho, tests_params)
+	
+	#@printf("Expected rho: %f ", float(rho))
+	#println("($rho) [$rndrho] for p: $str_p, q: $str_q")
 	
 	# Functions for creating bit source
 	bs_from_file(file) = [
@@ -242,26 +252,43 @@ function runOnSources(out_file, i, N, p, str_p, q, str_q, runs)
 			#	"Mersenne Twister" "mersenne"    bs_from_cmd;
 			]
 	
-	for bs in 1:size(sources,1), rs in 1:size(simulations,1)
-		lbl, file, to_bs = sources[bs,:]
-		simulation_type, simulation = simulations[rs,:]
-		
-		bit_sources    = to_bs(file)
-		#gc()
-		print(length(bit_sources))
-		
-		analysis = AnalyzeGambler1D(bit_sources, simulation, i, N, p, q, Gambler.stepRegular)
+	tasks = [(bs, rs, params) for
+			bs in 1:size(sources,1),
+			rs in 1:size(simulations,1),
+			params in tests_params]
+	np = nprocs()
+	n = length(tasks)
+	i = 1
+	nextidx() = (idx=i; i+=1; idx)
+	@sync begin
+		for proc = np == 1 ? 1 : 2 : np
+			@async begin
+				while true
+					idx = nextidx()
+					if idx > n
+						break
+					end
+					bs, rs, params = tasks[idx]
+					lbl, file, to_bs = sources[bs,:]
+					simulation_type, simulation = simulations[rs,:]
+					i, N, p, str_p, q, str_q, runs, rho = params
+					
+					analysis = remotecall_fetch(proc, AnalyzeGambler1D, to_bs, file, simulation, i, N, p, q, Gambler.stepRegular)
 
-		wins, loses, total, ratio, timeavg, timevar, timevicavg, timevicvar, timedefavg, timedefvar = analysis
-		rho_variance = (wins * ((1 - rho)^2) + loses * ((0 - rho)^2)) / total
-		mean_variance = (wins * ((1 - ratio)^2) + loses * ((0 - ratio)^2)) / (total - 1)
+					wins, loses, total, ratio, timeavg, timevar, timevicavg, timevicvar, timedefavg, timedefvar = analysis
+					rho_variance = (wins * ((1 - rho)^2) + loses * ((0 - rho)^2)) / total
+					mean_variance = (wins * ((1 - ratio)^2) + loses * ((0 - ratio)^2)) / (total - 1)
 
-		fdiff = Float32(rho - ratio)
-		fvrho = Float32(rho_variance)
-		fmrho = Float32(mean_variance)
-		write(out_file, join((str_p, str_q, N, runs, i, simulation_type, lbl, float(rho), float(ratio), float(rho_variance), float(mean_variance), "-", timeavg, timevar, timevicavg, timevicvar, timedefavg, timedefvar), ","), "\n")
-		flush(out_file)
-		println("$lbl $simulation_type $analysis diff.: $fdiff v_rho: $fvrho v_mean: $fmrho")
+					fdiff = Float32(rho - ratio)
+					fvrho = Float32(rho_variance)
+					fmrho = Float32(mean_variance)
+					write(out_file, join((str_p, str_q, N, runs, i, simulation_type, lbl, float(rho), float(ratio), float(rho_variance), float(mean_variance), "-", timeavg, timevar, timevicavg, timevicvar, timedefavg, timedefvar), ","), "\n")
+					flush(out_file)
+					@printf("Expected rho: %f ", float(rho)) 
+					println("$lbl $simulation_type $analysis diff.: $fdiff v_rho: $fvrho v_mean: $fmrho")
+				end
+			end
+		end
 	end
 end
 
