@@ -8,7 +8,7 @@
 DATE=`date`
 echo "$DATE $1 $2 $3 $4" >> generator.log
 
-# set the key derivation function [possible are sha, echo and hex]
+# set the key derivation function [possible are sha, echo, rel, wep and hex]
 KDF=$1
 
 # set the default IV for the ciphers
@@ -16,21 +16,37 @@ IHEX=00000000000000000000000000000000
 
 source ensure_generators.sh
 
+# base to be added to all sha kdfs
+ADD_BASE="GAMBLER_0001"
 
 function sha # $1 keybase # hashes keybase and returns hex
 {
-	echo $1 | sha256sum | cut -c1-64
+	echo "$ADD_BASE $1" | sha256sum | cut -c1-64
 }
 
 function hex # $1 keybase # interprets key as integer and returns hex repr.
 {
-	echo "obase=16; $1" | bc
+	printf "%064x\n" $1
+}
+
+function rel # $1 keybase 
+{
+	PREFIX=`sha $ADD_BASE | cut -c1-48`
+	SUFFIX=`hex $1 | cut -c49-64`
+	echo "$PREFIX$SUFFIX"
+}
+
+function wep # $1 keybase 
+{
+	PREFIX=`hex $1 | cut -c27-64`          #128 + 24 bits (first 128 gets cut with kdf128)
+	SUFFIX=`sha $ADD_BASE | cut -c1-26` #104 bits
+	echo "$PREFIX$SUFFIX"
 }
 
 function kdf32 # $1 keybase
 {
 	KEY=`$KDF $1`
-	echo $KEY | cut -c1-8
+	echo $KEY | cut -c57-64
 }
 
 function kdf32d # $1 keybase
@@ -39,10 +55,16 @@ function kdf32d # $1 keybase
 	echo $((16#$KEY))
 }
 
+function kdf40 # $1 keybase
+{
+	KEY=`$KDF $1`
+	echo $KEY | cut -c55-64
+}
+
 function kdf64 # $1 keybase
 {
 	KEY=`$KDF $1`
-	echo $KEY | cut -c1-8
+	echo $KEY | cut -c49-64
 }
 
 function kdf64d # $1 keybase
@@ -54,19 +76,19 @@ function kdf64d # $1 keybase
 function kdf80 # $1 keybase
 {
 	KEY=`$KDF $1`
-	echo $KEY | cut -c1-20
+	echo $KEY | cut -c45-64
 }
 
 function kdf128 # $1 keybase
 {
 	KEY=`$KDF $1`
-	echo $KEY | cut -c1-32
+	echo $KEY | cut -c33-64
 }
 
 function kdf192 # $1 keybase
 {
 	KEY=`$KDF $1`
-	echo $KEY | cut -c1-48
+	echo $KEY | cut -c17-64
 }
 
 function kdf256 # $1 keybase
@@ -87,15 +109,19 @@ function urandom # [length] [keybase] # keybase ignored for urandom
 
 function openssl-rnd # [length] [keybase] # keybase ignored for openssl rand
 {
-	openssl rand $1 2>tmp.log
-	grep -v "error writing output file" tmp.log >> err.log
+	openssl rand $1
 }
 
 function rc4 # [length] [keybase]
 {
 	KEY128=`kdf128 $2`
-	head -c $1 /dev/zero | openssl rc4 -K $KEY128 2>tmp.log
-	grep -v "error writing output file" tmp.log >> err.log
+	head -c $1 /dev/zero | openssl rc4 -K $KEY128
+}
+	
+function rc4-40 # [length] [keybase]
+{
+	KEY40=`kdf40 $2`
+	head -c $1 /dev/zero | openssl rc4 -K $KEY40
 }
 	
 function spritz # [length] [keybase]
@@ -125,13 +151,13 @@ function aes128ctr # [length] [keybase]
 function aes192ctr # [length] [keybase]
 {
 	KEY192=`kdf192 $2`
-	head -c $1 /dev/zero | openssl enc -aes-192-ctr -iv $IHEX -K $KEY128 2>tmp.log
+	head -c $1 /dev/zero | openssl enc -aes-192-ctr -iv $IHEX -K $KEY192 2>tmp.log
 }
 
 function aes256ctr # [length] [keybase]
 {
 	KEY256=`kdf256 $2`
-	head -c $1 /dev/zero | openssl enc -aes-256-ctr -iv $IHEX -K $KEY128 2>tmp.log
+	head -c $1 /dev/zero | openssl enc -aes-256-ctr -iv $IHEX -K $KEY256 2>tmp.log
 }
 
 function c_rand # [length] [keybase]
@@ -198,6 +224,12 @@ function mersenne # [length] [keybase]
 {
 	DKEY64=`kdf64d $2`
 	bin/los-rng Mersenne $1 $DKEY64
+}
+
+function minstd # [length] [keybase]
+{
+	DKEY64=`kdf64d $2`
+	bin/los-rng Minstd $1 $DKEY64
 }
 
 #function buffer # passes arguments

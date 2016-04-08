@@ -15,7 +15,7 @@ range = 1:(limit-1)
 import Analyses
 
 #ps = [uniform(0.1, 0.9) for _ in range]
-ps = [gaussian(0.2, 0.5, 0.1) for _ in range]
+ps = [gaussian(0.05, 0.5, 0.1) for _ in range]
 
 for r in range
 	p = ps[r]

@@ -10,7 +10,7 @@ constexpr uint64_t pow2m1(int n) { return (1ull << n) - 1; }
 class PRNG
 {
 public:
-    virtual void setSeed(uint32_t seed) = 0;
+    virtual void setSeed(uint64_t seed) = 0;
     virtual uint64_t nextInt() = 0;
     virtual uint32_t getNrOfBits() = 0;
 };
@@ -30,7 +30,7 @@ public:
     {
     }
     
-    void setSeed(uint32_t seed)
+    void setSeed(uint64_t seed)
     {
         this->seed = seed;
     }
@@ -61,7 +61,7 @@ public:
     {
     }
     
-    void setSeed(uint32_t seed)
+    void setSeed(uint64_t seed)
     {
         prng->setSeed(seed);
     }
@@ -97,7 +97,7 @@ public:
         reset();
     }
     
-    void setSeed(uint32_t seed)
+    void setSeed(uint64_t seed)
     {
         x[0] = 0;
         x[1] = seed;
@@ -157,7 +157,7 @@ private:
 class C_PRG : public PRNG
 {
 public:
-    void setSeed(uint32_t seed)
+    void setSeed(uint64_t seed)
     {
         srand(seed);
     }
@@ -181,7 +181,7 @@ class BorlandPRNG : public PRNG
         return static_cast<uint64_t>( (myseed >> 16) & 0x7FFF );
     }
     
-    void setSeed(uint32_t seed)
+    void setSeed(uint64_t seed)
     {
         myseed = seed;
         //myrand();
@@ -204,7 +204,7 @@ class VisualPRNG : public PRNG
         return static_cast<uint64_t>( (myseed >> 16) & 0x7FFF );
     }
     
-    void setSeed(uint32_t seed)
+    void setSeed(uint64_t seed)
     {
         myseed = seed;
         //myrand();
@@ -222,7 +222,7 @@ private:
 class Mersenne : public PRNG
 {
 public:
-    void setSeed(uint32_t seed)
+    void setSeed(uint64_t seed)
     {
         eng.seed(seed);
     }
@@ -246,9 +246,10 @@ public:
 class RandU : public PRNG
 {
 public:
-    void setSeed(uint32_t seed)
+    void setSeed(uint64_t seed)
     {
-        s = seed + (seed % 2 == 0 ? 1 : 0);
+//        s = seed + (seed % 2 == 0 ? 1 : 0);
+		s = seed;
     }
     
     uint64_t nextInt()
