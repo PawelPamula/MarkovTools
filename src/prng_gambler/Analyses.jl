@@ -103,7 +103,7 @@ function EstimateResultsGambler1D(start::Int64, limit::Int64, p, q)
 end
 
 # Functions for creating bit source
-function bsFromFile(file, runs)
+function bsFromFile(file, runs, i)
 	[
 		#RandSources.BitSeqBitSource(BitSeqModule.fileToBitSeq("seq/R$file$i"))
 		RandSources.FileBitSource(FileSources.FileSource("seq/R$file$i"))
@@ -111,7 +111,7 @@ function bsFromFile(file, runs)
 	]
 end
 
-function bsFromCmd(cmd, runs)
+function bsFromCmd(cmd, runs, i)
 	function generator(cmd, r)
 		# byte limit for dynamically generated sources
 		limit = 512*1024 #16*1024*1024
@@ -126,11 +126,11 @@ function bsFromCmd(cmd, runs)
 	]
 end
 
-function bsFromBroken(_, runs)
+function bsFromBroken(arg, runs, i)
 	[RandSources.BrokenBitSource() for i in 1:runs]
 end
 
-function bsFromJulia(_, runs)
+function bsFromJulia(arg, runs, i)
 	[RandSources.JuliaBitSource() for i in 1:runs]
 end
 
@@ -171,7 +171,7 @@ function runTest(runs, tests_params, simulations, sources)
 					end
 					bs, rs, params = tasks[idx]
 					lbl, file, to_bs_r = sources[bs,:]
-					to_bs = x -> to_bs_r(x, runs)
+					to_bs = x -> to_bs_r(x, runs, idx)
 					simulation_type, simulation = simulations[rs,:]
 					i, N, p, str_p, q, str_q, rho = params
 					
