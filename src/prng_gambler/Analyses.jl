@@ -102,78 +102,16 @@ function EstimateResultsGambler1D(start::Int64, limit::Int64, p, q)
 	return rho
 end
 
-function filedPQ(filename)
-	ps = []
-	qs = []
-	open(filename) do file
-		for line in eachline(file)
-			tp = split(line, ", ")
-			append!(ps, [float(tp[2])])
-			append!(qs, [float(tp[3])])
-		end
-	end
-	pf(r, N) = ps[r]
-	qf(r, N) = qs[r]
-
-	return (pf, qf)
+# Functions for creating bit source
+function bsFromFile(file, runs)
+	[
+		#RandSources.BitSeqBitSource(BitSeqModule.fileToBitSeq("seq/R$file$i"))
+		RandSources.FileBitSource(FileSources.FileSource("seq/R$file$i"))
+		for i=1:runs
+	]
 end
 
-function runTest(runs)
-	out_file = open("./results.csv", "w")
-	write(out_file, "p(i), q(i), N, n, i_0, simulation type, generator, estimated rho(i), simulated rho(i), variance (est), variance (sim), error b, mean time, time variance, mean time to win, time to win variance, mean time to lose, time to lose variance\n")
-	
-	tests_params = []
-	
-	#
-	#  Constant p and q:
-	#
-	p1(i::Int64, N::Int64) = 0.48
-	q1(i::Int64, N::Int64) = 0.52
-	#push!(tests_params, (290, 300, p1, "0.48", q1, "0.52"))
-	#push!(tests_params, ( 10, 300, q1, "0.52", p1, "0.48"))
-	#
-	#  Variable p and q:
-	#
-	p2(i::Int64, N::Int64) = (i)//(2*i + 1)
-	q2(i::Int64, N::Int64) = (i+1)//(2*i + 1)
-	#push!(tests_params, (100, 300, p2, "(i)/(2i+1)", q2, "(i+1)/(2i+1)"))
-	#push!(tests_params, (150, 300, p2, "(i)/(2i+1)", q2, "(i+1)/(2i+1)"))
-	#push!(tests_params, (200, 300, p2, "(i)/(2i+1)", q2, "(i+1)/(2i+1)"))
-
-	p3(i::Int64, N::Int64) =   (i)^3//(2*i^3 + 3*i^2 + 3*i + 1)
-	q3(i::Int64, N::Int64) = (i+1)^3//(2*i^3 + 3*i^2 + 3*i + 1)
-	#push!(tests_params, (100, 300, p3, "(i)^3/(2*i^3+3*i^2+3*i+1)", q3, "(i+1)^3/(2*i^3+3*i^2+3*i+1)"))
-	#push!(tests_params, (150, 300, p3, "(i)^3/(2*i^3+3*i^2+3*i+1)", q3, "(i+1)^3/(2*i^3+3*i^2+3*i+1)"))
-	#push!(tests_params, (200, 300, p3, "(i)^3/(2*i^3+3*i^2+3*i+1)", q3, "(i+1)^3/(2*i^3+3*i^2+3*i+1)"))
-
-	p4(i::Int64, N::Int64) = i//N
-	q4(i::Int64, N::Int64) = (N-i)//N
-	#push!(tests_params, (145, 300, p4, "i/N", q4, "(N-i)/N"))
-	#push!(tests_params, (150, 300, p4, "i/N", q4, "(N-i)/N"))
-	#push!(tests_params, (155, 300, p4, "i/N", q4, "(N-i)/N"))
-
-	(p5, q5) = filedPQ("random_p_q_1.csv")
-	#push!(tests_params, (150, 300, p5, "random(1)", q5, "random(1)"))
-	(p6, q6) = filedPQ("random_p_q_7.csv")
-	#push!(tests_params, (50, 300, p6, "random(2)", q6, "random(2)"))
-	#push!(tests_params, (150, 300, p6, "random(2)", q6, "random(2)"))
-
-	#
-	#  All i in range:
-	#
-	for i in 7:99
-	#	push!(tests_params, (i, 300, p1, "0.48", q1, "0.52"))
-	#	push!(tests_params, (i, 300, p2, "(i)/(2i+1)", q2, "(i+1)/(2i+1)"))
-	#	push!(tests_params, (i, 300, p3, "(i)^3/(2*i^3+3*i^2+3*i+1)", q3, "(i+1)^3/(2*i^3+3*i^2+3*i+1)"))
-		push!(tests_params, (i, 300, p4, "i/N", q4, "(N-i)/N"))
-	#	push!(tests_params, (i, 300, p6, "random(2)", q6, "random(2)"))
-	end
-
-	runOnSources(out_file, runs, tests_params)
-	close(out_file)
-end
-
-function runOnSources(out_file, runs, tests_params) # list of: (i, N, p, str_p, q, str_q)
+function bsFromCmd(cmd, runs)
 	function generator(cmd, r)
 		# byte limit for dynamically generated sources
 		limit = 512*1024 #16*1024*1024
@@ -182,75 +120,38 @@ function runOnSources(out_file, runs, tests_params) # list of: (i, N, p, str_p, 
 		km = r + (i * runs)
 		return `bash generator.sh $kdf $cmd $limit $km`
 	end
+	[
+		RandSources.FileBitSource(FileSources.CmdSource(generator(cmd, r)))
+		for r=1:runs
+	]
+end
+
+function bsFromBroken(_, runs)
+	[RandSources.BrokenBitSource() for i in 1:runs]
+end
+
+function bsFromJulia(_, runs)
+	[RandSources.JuliaBitSource() for i in 1:runs]
+end
+
+function runTest(runs, tests_params, simulations, sources)
+	# @runs: number of simulation runs for each tests
+	# @tests_params: list of (i, N, p, str_p, q, str_q)
+	# @simulations: list of (simulation_type_name, simulation_type_function)
+	# @sources: list of (name, arg, function) arg is an argument for function,
+	#           function should be one of bsFrom* functions defined above
+	
 	function append_rho(params)
 		i, N, p, str_p, q, str_q = params
 		rho = EstimateResultsGambler1D(i, N, p, q)
 		rndrho = round(Int, rho * runs) // runs
-		return i, N, p, str_p, q, str_q, runs, rho
+		return i, N, p, str_p, q, str_q, rho
 	end
 	
 	tests_params = map(append_rho, tests_params)
 	
-	#@printf("Expected rho: %f ", float(rho))
-	#println("($rho) [$rndrho] for p: $str_p, q: $str_q")
-	
-	# Functions for creating bit source
-	bs_from_file(file) = [
-		#RandSources.BitSeqBitSource(BitSeqModule.fileToBitSeq("seq/R$file$i"))
-		RandSources.FileBitSource(FileSources.FileSource("seq/R$file$i"))
-		for i=1:runs
-		]
-	
-	bs_from_cmd(cmd) = [
-		RandSources.FileBitSource(FileSources.CmdSource(generator(cmd, r)))
-		for r=1:runs
-		]
-	
-	bs_from_broken(_) = [RandSources.BrokenBitSource() for i in 1:runs]
-	
-	bs_from_julia(_) = [RandSources.JuliaBitSource() for i in 1:runs]
-	
-	# Functions for creating random source from bit source
-	simulations = [
-					"BitTracker    " BitTracker;
-				#	"BitSlicer8    " x -> BitSlicer(x, 8);
-				#	"BitSlicerInv8 " x -> BitSlicerInv(x, 8);
-				#	"BitSlicer12   " x -> BitSlicer(x, 12);
-				#	"BitSlicerInv12" x -> BitSlicerInv(x, 12);
-				#	"BitSlicer15   " x -> BitSlicer(x, 15);
-				#	"BitSlicerInv15" x -> BitSlicerInv(x, 15);
-				#	"BitSlicer16   " x -> BitSlicer(x, 16);
-				#	"BitSlicerInv16" x -> BitSlicerInv(x, 16);
-				#	"BitSlicer17   " x -> BitSlicer(x, 17);
-				#	"BitSlicerInv17" x -> BitSlicerInv(x, 17);
-				#	"BitSlicer31   " x -> BitSlicer(x, 31);
-				#	"BitSlicerInv31" x -> BitSlicerInv(x, 31);
-				]
-				
-	sources = [
-			#	"Broken 01010101 " ""            bs_from_broken;
-			#	"Julia Rand(0:1) " ""            bs_from_julia;
-			#	"/dev/urandom    " "urandom"     bs_from_cmd;
-			#	"OpenSSL-RNG     " "openssl-rng" bs_from_cmd;
-			#	"OpenSSL-RC4     " "rc4"         bs_from_cmd;
-			#	"SPRITZ          " "spritz"      bs_from_cmd;
-			#	"VMPC-KSA        " "vmpc"        bs_from_cmd;
-			#	"RC4+            " "rc4p  "      bs_from_cmd;
-			#	"AES-128-CTR     " "aes128ctr"   bs_from_cmd;
-			#	"AES-192-CTR     " "aes192ctr"   bs_from_cmd;
-			#	"AES-256-CTR     " "aes256ctr"   bs_from_cmd;
-			#	"C RAND          " "crand"       bs_from_cmd;
-				"RANDU LCG       " "randu"       bs_from_cmd;
-			#	"HC128           " "hc128"       bs_from_cmd;
-			#	"RABBIT          " "rabbit"      bs_from_cmd;
-			#	"SALSA20/12      " "salsa20"     bs_from_cmd;
-			#	"SOSEMANUK       " "sosemanuk"   bs_from_cmd;
-			#	"GRAIN           " "grain"       bs_from_cmd;
-			#	"MICKEY          " "mickey"      bs_from_cmd;
-			#	"TRIVIUM         " "trivium"     bs_from_cmd;
-			#	"F-FCSR          " "ffcsr"       bs_from_cmd;
-			#	"Mersenne Twister" "mersenne"    bs_from_cmd;
-			]
+	out_file = open("./results.csv", "w")
+	write(out_file, "p(i), q(i), N, n, i_0, simulation type, generator, estimated rho(i), simulated rho(i), variance (est), variance (sim), error b, mean time, time variance, mean time to win, time to win variance, mean time to lose, time to lose variance\n")
 	
 	tasks = [(bs, rs, params) for
 			bs in 1:size(sources,1),
@@ -269,9 +170,10 @@ function runOnSources(out_file, runs, tests_params) # list of: (i, N, p, str_p, 
 						break
 					end
 					bs, rs, params = tasks[idx]
-					lbl, file, to_bs = sources[bs,:]
+					lbl, file, to_bs_r = sources[bs,:]
+					to_bs = x -> to_bs_r(x, runs)
 					simulation_type, simulation = simulations[rs,:]
-					i, N, p, str_p, q, str_q, runs, rho = params
+					i, N, p, str_p, q, str_q, rho = params
 					
 					analysis = remotecall_fetch(proc, AnalyzeGambler1D, to_bs, file, simulation, i, N, p, q, Gambler.stepRegular)
 
@@ -290,6 +192,7 @@ function runOnSources(out_file, runs, tests_params) # list of: (i, N, p, str_p, 
 			end
 		end
 	end
+	close(out_file)
 end
 
 end #module
