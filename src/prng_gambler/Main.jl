@@ -94,7 +94,7 @@ function main()
 			#	"Mersenne Twister" "mersenne"    Analyses.bsFromCmd;
 			]
 
-	Analyses.runTest(2^8, tests_params, simulations, sources)
+	Analyses.runTest(2^8, "results.csv", tests_params, simulations, sources)
 end
 
 function filedPQ(filename)

@@ -134,7 +134,7 @@ function bsFromJulia(arg, runs, i)
 	[RandSources.JuliaBitSource() for r in 1:runs]
 end
 
-function runTest(runs, tests_params, simulations, sources)
+function runTest(runs, out_filename, tests_params, simulations, sources)
 	# @runs: number of simulation runs for each tests
 	# @tests_params: list of (i, N, p, str_p, q, str_q)
 	# @simulations: list of (simulation_type_name, simulation_type_function)
@@ -150,7 +150,7 @@ function runTest(runs, tests_params, simulations, sources)
 	
 	tests_params = map(append_rho, tests_params)
 	
-	out_file = open("./results.csv", "w")
+	out_file = open(out_filename, "w")
 	write(out_file, "p(i), q(i), N, n, i_0, simulation type, generator, estimated rho(i), simulated rho(i), variance (est), variance (sim), error b, mean time, time variance, mean time to win, time to win variance, mean time to lose, time to lose variance\n")
 	
 	tasks = [(bs, rs, params) for
