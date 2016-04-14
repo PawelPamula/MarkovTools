@@ -186,8 +186,7 @@ function runTest(runs, out_filename, tests_params, simulations, sources)
 					fmrho = Float32(mean_variance)
 					write(out_file, join((str_p, str_q, N, runs, i, simulation_type, lbl, float(rho), float(ratio), float(rho_variance), float(mean_variance), "-", timeavg, timevar, timevicavg, timevicvar, timedefavg, timedefvar), ","), "\n")
 					flush(out_file)
-					@printf("Expected rho: %f ", float(rho)) 
-					println("$lbl $simulation_type $analysis diff.: $fdiff v_rho: $fvrho v_mean: $fmrho")
+					println("[$i -> $N] Expected rho:$(float(rho)) $lbl $simulation_type $analysis diff.: $fdiff v_rho: $fvrho v_mean: $fmrho")
 				end
 			end
 		end

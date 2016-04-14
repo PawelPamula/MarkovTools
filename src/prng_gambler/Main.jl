@@ -45,12 +45,17 @@ function main()
 	#
 	#  All i in range:
 	#
-	for i in 7:99
+	ps, qs = filedPQ_const("balanced_p_q.csv")
+	for i in 1:299
+		# p7(r,N) syntax doesn't capture the current i!
+		p7 = (r, N) -> ps[i]
+		q7 = (r, N) -> qs[i]
 	#	push!(tests_params, (i, 300, p1, "0.48", q1, "0.52"))
 	#	push!(tests_params, (i, 300, p2, "(i)/(2i+1)", q2, "(i+1)/(2i+1)"))
 	#	push!(tests_params, (i, 300, p3, "(i)^3/(2*i^3+3*i^2+3*i+1)", q3, "(i+1)^3/(2*i^3+3*i^2+3*i+1)"))
-		push!(tests_params, (i, 300, p4, "i/N", q4, "(N-i)/N"))
+	#	push!(tests_params, (i, 300, p4, "i/N", q4, "(N-i)/N"))
 	#	push!(tests_params, (i, 300, p6, "random(2)", q6, "random(2)"))
+		push!(tests_params, (i, 300, p7, "balanced(1/2)", q7, "balanced(1/2)"))
 	end
 	
 	simulations = [
@@ -74,7 +79,7 @@ function main()
 			#	"Julia Rand(0:1) " ""            Analyses.bsFromJulia;
 			#	"/dev/urandom    " "urandom"     Analyses.bsFromCmd;
 			#	"OpenSSL-RNG     " "openssl-rng" Analyses.bsFromCmd;
-			#	"OpenSSL-RC4     " "rc4"         Analyses.bsFromCmd;
+				"OpenSSL-RC4     " "rc4"         Analyses.bsFromCmd;
 			#	"SPRITZ          " "spritz"      Analyses.bsFromCmd;
 			#	"VMPC-KSA        " "vmpc"        Analyses.bsFromCmd;
 			#	"RC4+            " "rc4p  "      Analyses.bsFromCmd;
@@ -82,7 +87,7 @@ function main()
 			#	"AES-192-CTR     " "aes192ctr"   Analyses.bsFromCmd;
 			#	"AES-256-CTR     " "aes256ctr"   Analyses.bsFromCmd;
 			#	"C RAND          " "crand"       Analyses.bsFromCmd;
-				"RANDU LCG       " "randu"       Analyses.bsFromCmd;
+			#	"RANDU LCG       " "randu"       Analyses.bsFromCmd;
 			#	"HC128           " "hc128"       Analyses.bsFromCmd;
 			#	"RABBIT          " "rabbit"      Analyses.bsFromCmd;
 			#	"SALSA20/12      " "salsa20"     Analyses.bsFromCmd;
@@ -111,6 +116,20 @@ function filedPQ(filename)
 	qf(r, N) = qs[r]
 
 	return (pf, qf)
+end
+
+function filedPQ_const(filename)
+	ps = []
+	qs = []
+	open(filename) do file
+		for line in eachline(file)
+			tp = split(line, ", ")
+			append!(ps, [float(tp[2])])
+			append!(qs, [float(tp[3])])
+		end
+	end
+
+	return (ps, qs)
 end
 
 main()
