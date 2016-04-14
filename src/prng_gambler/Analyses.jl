@@ -105,9 +105,9 @@ end
 # Functions for creating bit source
 function bsFromFile(file, runs, i)
 	[
-		#RandSources.BitSeqBitSource(BitSeqModule.fileToBitSeq("seq/R$file$i"))
-		RandSources.FileBitSource(FileSources.FileSource("seq/R$file$i"))
-		for i=1:runs
+		#RandSources.BitSeqBitSource(BitSeqModule.fileToBitSeq("seq/R$file$r"))
+		RandSources.FileBitSource(FileSources.FileSource("seq/R$file$r"))
+		for r=1:runs
 	]
 end
 
@@ -127,11 +127,11 @@ function bsFromCmd(cmd, runs, i)
 end
 
 function bsFromBroken(arg, runs, i)
-	[RandSources.BrokenBitSource() for i in 1:runs]
+	[RandSources.BrokenBitSource() for r in 1:runs]
 end
 
 function bsFromJulia(arg, runs, i)
-	[RandSources.JuliaBitSource() for i in 1:runs]
+	[RandSources.JuliaBitSource() for r in 1:runs]
 end
 
 function runTest(runs, tests_params, simulations, sources)
