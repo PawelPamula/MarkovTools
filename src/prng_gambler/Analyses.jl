@@ -226,11 +226,11 @@ function runOnSources(out_file, i, N, p, str_p, q, str_q, runs)
 			#	"SPRITZ          " "spritz"      bs_from_cmd;
 			#	"VMPC-KSA        " "vmpc"        bs_from_cmd;
 			#	"RC4+            " "rc4p  "      bs_from_cmd;
-			#	"AES-128-CTR     " "aes128ctr"   bs_from_cmd;
+				"AES-128-CTR     " "aes128ctr"   bs_from_cmd;
 			#	"AES-192-CTR     " "aes192ctr"   bs_from_cmd;
 			#	"AES-256-CTR     " "aes256ctr"   bs_from_cmd;
 			#	"C RAND          " "crand"       bs_from_cmd;
-				"RANDU LCG       " "randu"       bs_from_cmd;
+			#	"RANDU LCG       " "randu"       bs_from_cmd;
 			#	"HC128           " "hc128"       bs_from_cmd;
 			#	"RABBIT          " "rabbit"      bs_from_cmd;
 			#	"SALSA20/12      " "salsa20"     bs_from_cmd;
@@ -261,7 +261,7 @@ function runOnSources(out_file, i, N, p, str_p, q, str_q, runs)
 		fmrho = Float32(mean_variance)
 		write(out_file, join((str_p, str_q, N, runs, i, simulation_type, lbl, float(rho), float(ratio), float(rho_variance), float(mean_variance), "-", timeavg, timevar, timevicavg, timevicvar, timedefavg, timedefvar), ","), "\n")
 		flush(out_file)
-		println("$lbl $simulation_type $analysis diff.: $fdiff v_rho: $fvrho v_mean: $fmrho")
+		println("[i: $i/N: $N] $lbl $simulation_type $analysis diff.: $fdiff v_rho: $fvrho v_mean: $fmrho")
 	end
 end
 

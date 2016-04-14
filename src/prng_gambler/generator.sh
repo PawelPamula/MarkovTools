@@ -39,7 +39,7 @@ function rel # $1 keybase
 function wep # $1 keybase 
 {
 	PREFIX=`hex $1 | cut -c27-64`          #128 + 24 bits (first 128 gets cut with kdf128)
-	SUFFIX=`sha $ADD_BASE | cut -c1-26` #104 bits
+	SUFFIX=`sha $ADD_BASE | cut -c1-26`    #104 bits
 	echo "$PREFIX$SUFFIX"
 }
 
@@ -231,15 +231,6 @@ function minstd # [length] [keybase]
 	DKEY64=`kdf64d $2`
 	bin/los-rng Minstd $1 $DKEY64
 }
-
-#function buffer # passes arguments
-#{
-#	FN="/run/shm/$1-$2-$3"
-#	#>&2 echo "$FN"
-#	$1 $2 $3 > $FN
-#	cat $FN
-#	rm $FN
-#}
 
 $2 $3 $4
 
