@@ -232,6 +232,24 @@ function minstd # [length] [keybase]
 	bin/los-rng Minstd $1 $DKEY64
 }
 
+function borland # [length] [keybase]
+{
+	DKEY64=`kdf64d $2`
+	bin/los-rng Borland $1 $DKEY64
+}
+
+function vs # [length] [keybase]
+{
+	DKEY64=`kdf64d $2`
+	bin/los-rng VS $1 $DKEY64
+}
+
+function cmrg # [length] [keybase]
+{
+	DKEY64=`kdf64d $2`
+	bin/los-rng CMRG $1 $DKEY64
+}
+
 $2 $3 $4
 
 # close the file descriptor:

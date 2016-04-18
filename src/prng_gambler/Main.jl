@@ -97,6 +97,9 @@ function main()
 			#	"TRIVIUM         " "trivium"     Analyses.bsFromCmd;
 			#	"F-FCSR          " "ffcsr"       Analyses.bsFromCmd;
 			#	"Mersenne Twister" "mersenne"    Analyses.bsFromCmd;
+			#	"Borland C       " "borland"     Analyses.bsFromCmd;
+			#	"Visual Studio   " "vs"          Analyses.bsFromCmd;
+			#	"CMRG            " "cmrg"        Analyses.bsFromCmd;
 			]
 
 	Analyses.runTest(2^8, "results.csv", tests_params, simulations, sources)
