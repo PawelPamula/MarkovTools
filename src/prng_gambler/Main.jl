@@ -86,7 +86,7 @@ function main()
 			#	"AES-128-CTR     " "aes128ctr"   Analyses.bsFromCmd;
 			#	"AES-192-CTR     " "aes192ctr"   Analyses.bsFromCmd;
 			#	"AES-256-CTR     " "aes256ctr"   Analyses.bsFromCmd;
-			#	"C RAND          " "crand"       Analyses.bsFromCmd;
+			#	"C RAND          " "c_rand"      Analyses.bsFromCmd;
 			#	"RANDU LCG       " "randu"       Analyses.bsFromCmd;
 			#	"HC128           " "hc128"       Analyses.bsFromCmd;
 			#	"RABBIT          " "rabbit"      Analyses.bsFromCmd;
