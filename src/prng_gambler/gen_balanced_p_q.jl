@@ -16,7 +16,7 @@ push!(LOAD_PATH, ".")
 using Polynomials
 using Roots
 
-N = 300
+N = 64
 x = poly([0])
 t = 1/2^16
 
