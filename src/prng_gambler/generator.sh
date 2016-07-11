@@ -17,7 +17,7 @@ IHEX=00000000000000000000000000000000
 source ensure_generators.sh
 
 # base to be added to all sha kdfs
-ADD_BASE="GAMBLER_0001"
+ADD_BASE="GAMBLER_0010"
 
 function sha # $1 keybase # hashes keybase and returns hex
 {
