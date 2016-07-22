@@ -17,11 +17,13 @@ IHEX=00000000000000000000000000000000
 source ensure_generators.sh
 
 # base to be added to all sha kdfs
-ADD_BASE="GAMBLER_0010"
+if [ -z $ADD_BASE ]; then
+	ADD_BASE="GAMBLER_0001"
+fi
 
 function sha # $1 keybase # hashes keybase and returns hex
 {
-	echo "$ADD_BASE $1" | sha256sum | cut -c1-64
+	echo "$ADD_BASE#$1" | sha256sum | cut -c1-64
 }
 
 function hex # $1 keybase # interprets key as integer and returns hex repr.
@@ -160,18 +162,6 @@ function aes256ctr # [length] [keybase]
 	head -c $1 /dev/zero | openssl enc -aes-256-ctr -iv $IHEX -K $KEY256 2>tmp.log
 }
 
-function c_rand # [length] [keybase]
-{
-	DKEY32=`kdf32d $2`
-	bin/c_rand $1 $DKEY32
-}
-
-function randu # [length] [keybase]
-{
-	DKEY32=`kdf32d $2`
-	bin/randu $1 $DKEY32
-}
-
 function hc128 # [length] [keybase]
 {
 	KEY128=`kdf128 $2`
@@ -226,10 +216,22 @@ function mersenne # [length] [keybase]
 	bin/los-rng Mersenne $1 $DKEY64
 }
 
+function mersenne_ar # [length] [keybase]
+{
+	DKEY64=`kdf64d $2`
+	bin/mt19937ar $1 $DKEY64
+}
+
 function minstd # [length] [keybase]
 {
 	DKEY64=`kdf64d $2`
 	bin/los-rng Minstd $1 $DKEY64
+}
+
+function oldbsd # [length] [keybase]
+{
+	DKEY64=`kdf64d $2`
+	bin/los-rng Rand $1 $DKEY64
 }
 
 function borland # [length] [keybase]
@@ -248,6 +250,20 @@ function cmrg # [length] [keybase]
 {
 	DKEY64=`kdf64d $2`
 	bin/los-rng CMRG $1 $DKEY64
+}
+
+function randu # [length] [keybase]
+{
+	DKEY32=`kdf32d $2`
+	bin/los-rng RANDU $1 $DKEY32
+	#bin/randu $1 $DKEY32
+}
+
+function c_rand # [length] [keybase]
+{
+	DKEY32=`kdf32d $2`
+	bin/los-rng C_PRG $1 $DKEY32
+	#bin/c_rand $1 $DKEY32
 }
 
 $2 $3 $4

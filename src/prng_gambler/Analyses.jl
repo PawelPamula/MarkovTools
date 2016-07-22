@@ -7,6 +7,7 @@ using Gambler
 using BitSeqModule
 using FileSources
 
+
 """
 Simple Gambler analyzer. Runs Gambler's ruin process with given @start, 
 @limit, @p, @q, @stepFunction, @stepWin, @stepLoss and @stepNone parameters on all
@@ -23,36 +24,48 @@ stepFunction, stepWin::Int64=1, stepLoss::Int64=-1, stepNone::Int64=0)
 	join(a, b) = ([a[1]; b[1]], [a[2]; b[2]])
 	
 	function just_run(source)
+		init(source)
+		rand_source = simulation(source)
+		state = Gambler1D(start, limit, p, q, stepWin, stepLoss, stepNone)
 		try
-			init(source)
-			rand_source = simulation(source)
-			(t, w) = runGambler(Gambler1D(start, limit, p, q, stepWin, stepLoss, stepNone), stepFunction, rand_source)
+			(t, w) = runGambler(state, stepFunction, rand_source)
 			fini(source)
 			if w
 				return (t, Int64[])
 			else
 				return (Int64[], t)
 			end
-		catch EOFError
-			srcrep = repr(source)
-			print("Encountered EOF when processing $srcrep\n")
-			fini(source)
-			return (Int64[], Int64[])
+		catch E
+			if isa(E,EOFError)
+				srcrep = repr(source)
+				time = state.time
+				print("Encountered EOF after $time steps, when processing $srcrep\n")
+				fini(source)
+				return (Int64[], Int64[])
+			else
+				throw(E)
+			end
 		end
 	end
 	
 	function map_run(source)
+		init(source)
+		rand_source = simulation(source)
+		state = Gambler1D(start, limit, p, q, stepWin, stepLoss, stepNone)
 		try
-			init(source)
-			rand_source = simulation(source)
-			(t, w) = runGambler(Gambler1D(start, limit, p, q, stepWin, stepLoss, stepNone), stepFunction, rand_source)
+			(t, w) = runGambler(state, stepFunction, rand_source)
 			fini(source)
 			return (t, w)
-		catch EOFError
-			srcrep = repr(source)
-			print("Encountered EOF when processing $srcrep\n")
-			fini(source)
-			return (0, -1)
+		catch E
+			if isa(E,EOFError)
+				srcrep = repr(source)
+				time = state.time
+				print("Encountered EOF after $time steps, when processing $srcrep\n")
+				fini(source)
+				return (0, -1)
+			else
+				throw(E)
+			end
 		end
 	end
 	
@@ -114,7 +127,8 @@ end
 function bsFromCmd(cmd, runs, i)
 	function generator(cmd, r)
 		# byte limit for dynamically generated sources
-		limit = 512*1024 #16*1024*1024
+		limit = 256*1024*1024
+		#limit = 512*1024 #16*1024*1024
 		# key derivation function
 		kdf = "sha"
 		km = r + (i * runs)

@@ -24,6 +24,7 @@ compileSmallC "rc4p"
 compileSmallC "c_rand"
 compileSmallC "randu"
 compileSmallC "hc128"
+compileSmallC "mt19937ar"
 
 if [ ! -f bin/los-rng ]; then
 	g++ --std=c++11 generators/los-rng.cpp -o bin/los-rng -O3
