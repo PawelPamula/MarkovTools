@@ -71,7 +71,7 @@ type GamblerND	<: TGambler
 		
 		return this
 	end
-end #Gambler1D
+end #GamblerND
 
 
 """

@@ -696,6 +696,160 @@ end
 
 # -----------------------------------------------------------------------------------
 
+type MRG <: StatedBitSource
+	state_x::AbstractArray{Int32}
+
+	index::Integer
+
+	word::UInt32
+	pos_word::UInt32
+	
+	bits::UInt32
+
+	function MRG(seed::Integer)
+		this = new()
+		
+		this.state_x = [seed % (2^31-1) for _ in 1:5]
+
+		this.bits = 31
+		this.pos_word = 0
+
+		this.index = 0
+
+		for _ in 1:2000 nextstate(this) end
+				
+		return this
+	end
+end
+
+function nextstate(this::MRG)
+	this.index += 1
+	x = 107374182*this.state_x[this.index]
+	this.index %= 5
+	x += 104480*this.state_x[this.index+1]
+	x %= (2^31-1)
+	
+	this.state_x[this.index+1] = x;
+	
+	this.word = x
+end
+
+# -----------------------------------------------------------------------------------
+
+type ICG <: StatedBitSource
+	state::BigInt
+
+	M::Int32
+	a::Int32
+	b::Int32
+
+	word::UInt32
+	pos_word::UInt32
+	
+	bits::UInt32
+
+	function ICG(seed::Integer, M::Integer, a::Integer, b::Integer)
+		this = new()
+		
+		this.state = (seed % M)
+		this.M = M
+		this.a = a
+		this.b = b
+
+		this.bits = 31
+		this.pos_word = 0
+				
+		return this
+	end
+end
+
+function nextstate(this::ICG)
+	if (this.state == 0) || (gcd(this.state, this.M) != 1)
+		x = 0
+	else
+		x = this.state
+	end
+	this.state = (this.a*invmod(x, this.M) + this.b) % this.M
+	
+	this.word = this.state
+end
+
+# -----------------------------------------------------------------------------------
+
+type EICG <: StatedBitSource
+	state::BigInt
+
+	M::Int32
+	a::Int32
+	b::Int32
+	seed::Int32
+
+	word::UInt32
+	pos_word::UInt32
+	
+	bits::UInt32
+
+	function EICG(seed::Integer, M::Integer, a::Integer, b::Integer)
+		this = new()
+		
+		this.seed = (seed % M)
+		this.M = M
+		this.a = a
+		this.b = b
+
+		this.state = 1
+
+		this.bits = 31
+		this.pos_word = 0
+				
+		return this
+	end
+end
+
+function nextstate(this::EICG)
+	tmp = this.a*(this.state + this.seed) + this.b
+	this.state += 1
+	
+	if (this.state == 0) || (gcd(tmp, this.M) != 1)
+		this.word = 0
+	else
+		this.word = invmod(tmp, this.M)
+	end
+end
+
+# -----------------------------------------------------------------------------------
+
+type CCCG <: StatedBitSource
+	state_x::BigInt
+	state_y::BigInt
+
+	word::UInt32
+	pos_word::UInt32
+	
+	bits::UInt32
+
+	function CCCG(seed::Integer)
+		this = new()
+		
+		this.state_x = seed % 65519
+		this.state_y = seed % 32693
+
+		this.bits = 31
+		this.pos_word = 0
+				
+		return this
+	end
+end
+
+function nextstate(this::CCCG)
+	this.state_x = (512 * this.state_x^3 + 1) % 65519
+	this.state_y = (1190 *this.state_y^3 + 1) % 32693
+	tmp = (32693*this.state_x + 65519*this.state_y) % (65519 * 32693)
+	this.word = tmp
+end
+
+# -----------------------------------------------------------------------------------
+
 using SHA
 
 kdf(r, i, m) = parse(BigInt, SHA.sha256(string(ENV["ADD_BASE"], "#", r + (i * m))), 16)
@@ -714,6 +868,30 @@ end
 
 function bsFromRan3(arg, runs, i)
 	[Ran3(kdf(r, i, runs)) for r in 1:runs]
+end
+
+function bsFromMRG(arg, runs, i)
+	[MRG(kdf(r, i, runs)) for r in 1:runs]
+end
+
+function bsFromICG1(arg, runs, i)
+	[ICG(kdf(r, i, runs), 2^31-595, 858993221, 1) for r in 1:runs]
+end
+
+function bsFromICG2(arg, runs, i)
+	[ICG(kdf(r, i, runs), 2^31-1, 1288490188, 1) for r in 1:runs]
+end
+
+function bsFromEICG1(arg, runs, i)
+	[EICG(kdf(r, i, runs), 2^31-1, 1, 0) for r in 1:runs]
+end
+
+function bsFromEICG7(arg, runs, i)
+	[EICG(kdf(r, i, runs), 2^31-1, 7, 0) for r in 1:runs]
+end
+
+function bsFromCCCG(arg, runs, i)
+	[CCCG(kdf(r, i, runs)) for r in 1:runs]
 end
 
 function nextbit(src::StatedBitSource)

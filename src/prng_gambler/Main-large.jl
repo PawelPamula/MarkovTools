@@ -76,17 +76,26 @@ function main(output_filename)
 			#	"Borland C       " "borland"     Analyses.bsFromCmd;
 			#	"Visual Studio   " "vs"          Analyses.bsFromCmd;
 			#	"CMRG            " "cmrg"        Analyses.bsFromCmd;
-			#	"Knuth           " ""            RandSources.bsFromKnuth;
+				"Knuth           " ""            RandSources.bsFromKnuth;
 				"Ran1            " ""            RandSources.bsFromRan1;
 				"Ran2            " ""            RandSources.bsFromRan2;
 				"Ran3            " ""            RandSources.bsFromRan3;
+				"MRG             " ""            RandSources.bsFromMRG;
+				"ICG1            " ""            RandSources.bsFromICG1;
+				"ICG2            " ""            RandSources.bsFromICG2;
+				"EICG1           " ""            RandSources.bsFromEICG1;
+				"EICG7           " ""            RandSources.bsFromEICG7;
+				"CCCG            " ""            RandSources.bsFromCCCG;
 			]
 
 	Analyses.runTest(16, output_filename, tests_params, simulations, sources)
 end
 
+ADD_BASE = "GAMBLER_0001"
 if !haskey(ENV, "ADD_BASE")
 	ENV["ADD_BASE"] = "GAMBLER_0001"
+else
+	ADD_BASE = ENV["ADD_BASE"]
 end
 
 output_filename = "results.csv"
