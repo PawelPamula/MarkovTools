@@ -68,9 +68,9 @@ function main(output_filename)
 			#	"TRIVIUM         " "trivium"     Analyses.bsFromCmd;
 			#	"F-FCSR          " "ffcsr"       Analyses.bsFromCmd;
 			#	"C RAND          " "c_rand"      Analyses.bsFromCmd;
-			#	"RANDU LCG       " "randu"       Analyses.bsFromCmd;
-			#	"BSD RAND        " "oldbsd"      Analyses.bsFromCmd;
-			#	"Minstd          " "minstd"      Analyses.bsFromCmd;
+				"RANDU LCG       " ""            RandSources.bsFromRandU;
+				"BSD RAND        " ""            RandSources.bsFromOldBSD;
+				"Minstd          " "minstd"      RandSources.bsFromMinstd;
 			#	"Mersenne Twister" "mersenne"    Analyses.bsFromCmd;
 			#	"Mersenne AR     " "mersenne_ar" Analyses.bsFromCmd;
 			#	"Borland C       " "borland"     Analyses.bsFromCmd;
@@ -88,7 +88,7 @@ function main(output_filename)
 				"CCCG            " ""            RandSources.bsFromCCCG;
 			]
 
-	Analyses.runTest(16, output_filename, tests_params, simulations, sources)
+	Analyses.runTest(4, output_filename, tests_params, simulations, sources)
 end
 
 ADD_BASE = "GAMBLER_0001"

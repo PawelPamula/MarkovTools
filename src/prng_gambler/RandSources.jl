@@ -449,9 +449,9 @@ type LCG <: StatedBitSource
 
 	N::UInt64
 	bits::UInt32
-	function LCG(seed::Int, A::Int, B::Int, N::Int, bits::Int)
+	function LCG(seed::Integer, A::Integer, B::Integer, N::Integer, bits::Integer)
 		this = new()
-		this.state = seed
+		this.state = seed % N
 
 		this.A = A
 		this.B = B
@@ -468,7 +468,7 @@ end
 rep(src::LCG) = string("LCG ", src.A, " x + ", src.B, " mod ", src.N)
 
 function nextstate(this::LCG)
-	value = (this.A * this.state + this.B) % lcg.N
+	value = (this.A * this.state + this.B) % this.N
 	this.state = value
 	this.word = value
 end
@@ -764,12 +764,12 @@ type ICG <: StatedBitSource
 end
 
 function nextstate(this::ICG)
-	if (this.state == 0) || (gcd(this.state, this.M) != 1)
-		x = 0
-	else
-		x = this.state
-	end
-	this.state = (this.a*invmod(x, this.M) + this.b) % this.M
+	x = 0
+	try
+		x = invmod(this.state, this.M)
+	catch end
+
+	this.state = (this.a*x + this.b) % this.M
 	
 	this.word = this.state
 end
@@ -810,10 +810,10 @@ function nextstate(this::EICG)
 	tmp = this.a*(this.state + this.seed) + this.b
 	this.state += 1
 	
-	if (this.state == 0) || (gcd(tmp, this.M) != 1)
-		this.word = 0
-	else
+	try
 		this.word = invmod(tmp, this.M)
+	catch
+		this.word = 0
 	end
 end
 
@@ -892,6 +892,18 @@ end
 
 function bsFromCCCG(arg, runs, i)
 	[CCCG(kdf(r, i, runs)) for r in 1:runs]
+end
+
+function bsFromOldBSD(arg, runs, i)
+	[LCG(kdf(r, i, runs), 1103515245, 12345, 2147483648, 31) for r in 1:runs]
+end
+
+function bsFromRandU(arg, runs, i)
+	[LCG(kdf(r, i, runs), 65539, 0, 2^31, 31) for r in 1:runs]
+end
+
+function bsFromMinstd(arg, runs, i)
+	[LCG(kdf(r, i, runs), 16807, 0, 2147483647, 31) for r in 1:runs]
 end
 
 function nextbit(src::StatedBitSource)
