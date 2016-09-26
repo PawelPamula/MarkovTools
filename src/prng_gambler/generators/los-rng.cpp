@@ -426,3 +426,4 @@ int main(int argc, char** argv)
 	prng->setSeed(seed);
 	generateString(length * 8, prng);
 }
+

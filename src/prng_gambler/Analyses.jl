@@ -132,6 +132,7 @@ function bsFromCmd(cmd, runs, i)
 		# key derivation function
 		kdf = "sha"
 		km = r + (i * runs)
+		#print("cmd km : $km ($r + ($i * $runs))\n")
 		return `bash generator.sh $kdf $cmd $limit $km`
 	end
 	[
@@ -185,7 +186,7 @@ function runTest(runs, out_filename, tests_params, simulations, sources)
 					end
 					bs, rs, params = tasks[idx]
 					lbl, file, to_bs_r = sources[bs,:]
-					to_bs = x -> to_bs_r(x, runs, idx)
+					to_bs = x -> to_bs_r(x, runs, i)
 					simulation_type, simulation = simulations[rs,:]
 					i, N, p, str_p, q, str_q, rho = params
 					

@@ -33,7 +33,7 @@ function main(output_filename)
 	#
 	ps, qs = filedPQ_const("balanced_p_q_64.csv")
 	N = 64
-	for i in 1:63
+	for i in 32:32
 		# p7(r,N) syntax doesn't capture the current i!
 		p7 = (r, N) -> ps[i]
 		q7 = (r, N) -> qs[i]
@@ -66,7 +66,7 @@ function main(output_filename)
 			#	"Julia Rand(0:1) " ""            Analyses.bsFromJulia;
 			#	"/dev/urandom    " "urandom"     Analyses.bsFromCmd;
 			#	"OpenSSL-RNG     " "openssl-rng" Analyses.bsFromCmd;
-				"OpenSSL-RC4     " "rc4"         Analyses.bsFromCmd;
+			#	"OpenSSL-RC4     " "rc4"         Analyses.bsFromCmd;
 			#	"SPRITZ          " "spritz"      Analyses.bsFromCmd;
 			#	"VMPC-KSA        " "vmpc"        Analyses.bsFromCmd;
 			#	"RC4+            " "rc4p  "      Analyses.bsFromCmd;
@@ -74,7 +74,8 @@ function main(output_filename)
 			#	"AES-192-CTR     " "aes192ctr"   Analyses.bsFromCmd;
 			#	"AES-256-CTR     " "aes256ctr"   Analyses.bsFromCmd;
 			#	"C RAND          " "c_rand"      Analyses.bsFromCmd;
-			#	"RANDU LCG       " "randu"       Analyses.bsFromCmd;
+				"RANDU CMD       " "randu"       Analyses.bsFromCmd;
+				"RANDU LCG       " ""            RandSources.bsFromRandU;
 			#	"HC128           " "hc128"       Analyses.bsFromCmd;
 			#	"RABBIT          " "rabbit"      Analyses.bsFromCmd;
 			#	"SALSA20/12      " "salsa20"     Analyses.bsFromCmd;
@@ -89,7 +90,7 @@ function main(output_filename)
 			#	"CMRG            " "cmrg"        Analyses.bsFromCmd;
 			]
 
-	Analyses.runTest(2^8, output_filename, tests_params, simulations, sources)
+	Analyses.runTest(2^4, output_filename, tests_params, simulations, sources)
 end
 
 function filedPQ(filename)

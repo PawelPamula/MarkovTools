@@ -69,23 +69,23 @@ function main(output_filename)
 			#	"F-FCSR          " "ffcsr"       Analyses.bsFromCmd;
 			#	"C RAND          " "c_rand"      Analyses.bsFromCmd;
 				"RANDU LCG       " ""            RandSources.bsFromRandU;
-				"BSD RAND        " ""            RandSources.bsFromOldBSD;
-				"Minstd          " "minstd"      RandSources.bsFromMinstd;
+			#	"BSD RAND        " ""            RandSources.bsFromOldBSD;
+			#	"Minstd          " "minstd"      RandSources.bsFromMinstd;
 			#	"Mersenne Twister" "mersenne"    Analyses.bsFromCmd;
 			#	"Mersenne AR     " "mersenne_ar" Analyses.bsFromCmd;
 			#	"Borland C       " "borland"     Analyses.bsFromCmd;
 			#	"Visual Studio   " "vs"          Analyses.bsFromCmd;
 			#	"CMRG            " "cmrg"        Analyses.bsFromCmd;
-				"Knuth           " ""            RandSources.bsFromKnuth;
-				"Ran1            " ""            RandSources.bsFromRan1;
-				"Ran2            " ""            RandSources.bsFromRan2;
-				"Ran3            " ""            RandSources.bsFromRan3;
-				"MRG             " ""            RandSources.bsFromMRG;
-				"ICG1            " ""            RandSources.bsFromICG1;
-				"ICG2            " ""            RandSources.bsFromICG2;
-				"EICG1           " ""            RandSources.bsFromEICG1;
-				"EICG7           " ""            RandSources.bsFromEICG7;
-				"CCCG            " ""            RandSources.bsFromCCCG;
+			#	"Knuth           " ""            RandSources.bsFromKnuth;
+			#	"Ran1            " ""            RandSources.bsFromRan1;
+			#	"Ran2            " ""            RandSources.bsFromRan2;
+			#	"Ran3            " ""            RandSources.bsFromRan3;
+			#	"MRG             " ""            RandSources.bsFromMRG;
+			#	"ICG1            " ""            RandSources.bsFromICG1;
+			#	"ICG2            " ""            RandSources.bsFromICG2;
+			#	"EICG1           " ""            RandSources.bsFromEICG1;
+			#	"EICG7           " ""            RandSources.bsFromEICG7;
+			#	"CCCG            " ""            RandSources.bsFromCCCG;
 			]
 
 	Analyses.runTest(4, output_filename, tests_params, simulations, sources)
@@ -104,3 +104,4 @@ if length(ARGS) > 0
 end
 
 main(output_filename)
+

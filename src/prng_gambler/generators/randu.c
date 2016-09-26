@@ -32,8 +32,8 @@ int main(int argc, const char* argv[])
 		int r = randu();
 		putchar(r & 0xff);
 		putchar(r >> 8);
-//		putchar(r >> 16);
-//		putchar(r >> 24);
+		putchar(r >> 16);
+		putchar(r >> 24);
 	}
 	
 	return 0;

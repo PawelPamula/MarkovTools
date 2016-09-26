@@ -853,6 +853,11 @@ end
 using SHA
 
 kdf(r, i, m) = parse(BigInt, SHA.sha256(string(ENV["ADD_BASE"], "#", r + (i * m))), 16)
+#function kdf(r, i, m)
+#	km = r + (i * m)
+#	print("lcg km : $km ($r + ($i * $m))\n")
+#	parse(BigInt, SHA.sha256(string(ENV["ADD_BASE"], "#", km)), 16)
+#end
 
 function bsFromKnuth(arg, runs, i)
 	[KnuthFibonacci(kdf(r, i, runs)) for r in 1:runs]
@@ -915,6 +920,21 @@ function nextbit(src::StatedBitSource)
 	bit = (src.word & 1)
 	src.word >>= 1
 	return bit == 1
+end
+
+# -----------------------------------------------------------------------------------
+
+function dumpoutput(src::BitSource, num)
+	for i in 1:num
+		byte = 0
+		for j in 0:7
+			if nextbit(src)
+				byte += (1 << j)
+			end
+		end
+		@printf("%02x", byte)
+	end
+	print("\n")
 end
 
 end #module

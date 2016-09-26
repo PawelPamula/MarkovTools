@@ -23,7 +23,7 @@ fi
 
 function sha # $1 keybase # hashes keybase and returns hex
 {
-	echo "$ADD_BASE#$1" | sha256sum | cut -c1-64
+	printf "$ADD_BASE#$1" | sha256sum | cut -c1-64
 }
 
 function hex # $1 keybase # interprets key as integer and returns hex repr.
