@@ -18,7 +18,7 @@ total time of all games, average game time.
 	averaged win/total ratio, total time of all games and the average
 	time of one game.
 """
-function AnalyzeGambler1D(bitSourcesFun, file, simulation, start::Int64, limit::Int64, p, q, 
+function AnalyzeGambler1D(bitSourcesFun, total, file, simulation, start::Int64, limit::Int64, p, q, 
 stepFunction, stepWin::Int64=1, stepLoss::Int64=-1, stepNone::Int64=0)
 		
 	join(a, b) = ([a[1]; b[1]], [a[2]; b[2]])
@@ -69,7 +69,7 @@ stepFunction, stepWin::Int64=1, stepLoss::Int64=-1, stepNone::Int64=0)
 		end
 	end
 	
-	bitSources = bitSourcesFun(file)
+	bitSources = [bitSourcesFun(file, run, start, total) for run in 1:total]
 	
 	ArrVic = Int64[]
 	ArrDef = Int64[]
@@ -116,37 +116,29 @@ function EstimateResultsGambler1D(start::Int64, limit::Int64, p, q)
 end
 
 # Functions for creating bit source
-function bsFromFile(file, runs, i)
-	[
-		#RandSources.BitSeqBitSource(BitSeqModule.fileToBitSeq("seq/R$file$r"))
-		RandSources.FileBitSource(FileSources.FileSource("seq/R$file$r"))
-		for r=1:runs
-	]
+function bsFromFile(file, run, total, i)
+	#RandSources.BitSeqBitSource(BitSeqModule.fileToBitSeq("seq/R$file$r"))
+	return RandSources.FileBitSource(FileSources.FileSource("seq/R$file$run"))
 end
 
-function bsFromCmd(cmd, runs, i)
-	function generator(cmd, r)
-		# byte limit for dynamically generated sources
-		limit = 256*1024*1024
-		#limit = 512*1024 #16*1024*1024
-		# key derivation function
-		kdf = "sha"
-		km = r + (i * runs)
-		#print("cmd km : $km ($r + ($i * $runs))\n")
-		return `bash generator.sh $kdf $cmd $limit $km`
-	end
-	[
-		RandSources.FileBitSource(FileSources.CmdSource(generator(cmd, r)))
-		for r=1:runs
-	]
+function bsFromCmd(cmd, run, total, i)
+	# byte limit for dynamically generated sources
+	limit = 256*1024*1024
+	#limit = 512*1024 #16*1024*1024
+	# key derivation function
+	kdf = "sha"
+	km = run + (i * total)
+	#print("cmd km : $km ($r + ($i * $runs))\n")
+	generator = `bash generator.sh $kdf $cmd $limit $km`
+	return RandSources.FileBitSource(FileSources.CmdSource(generator))
 end
 
-function bsFromBroken(arg, runs, i)
-	[RandSources.BrokenBitSource() for r in 1:runs]
+function bsFromBroken(arg, run, total, i)
+	return RandSources.BrokenBitSource()
 end
 
-function bsFromJulia(arg, runs, i)
-	[RandSources.JuliaBitSource() for r in 1:runs]
+function bsFromJulia(arg, run, total, i)
+	return RandSources.JuliaBitSource()
 end
 
 function runTest(runs, out_filename, tests_params, simulations, sources)
@@ -185,12 +177,11 @@ function runTest(runs, out_filename, tests_params, simulations, sources)
 						break
 					end
 					bs, rs, params = tasks[idx]
-					lbl, file, to_bs_r = sources[bs,:]
-					to_bs = x -> to_bs_r(x, runs, i)
+					lbl, file, to_bs = sources[bs,:]
 					simulation_type, simulation = simulations[rs,:]
 					i, N, p, str_p, q, str_q, rho = params
 					
-					analysis = remotecall_fetch(proc, AnalyzeGambler1D, to_bs, file, simulation, i, N, p, q, Gambler.stepRegular)
+					analysis = remotecall_fetch(proc, AnalyzeGambler1D, to_bs, runs, file, simulation, i, N, p, q, Gambler.stepRegular)
 
 					wins, loses, total, ratio, timeavg, timevar, timevicavg, timevicvar, timedefavg, timedefvar = analysis
 					rho_variance = (wins * ((1 - rho)^2) + loses * ((0 - rho)^2)) / total

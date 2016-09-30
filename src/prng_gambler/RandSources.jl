@@ -859,56 +859,56 @@ kdf(r, i, m) = parse(BigInt, SHA.sha256(string(ENV["ADD_BASE"], "#", r + (i * m)
 #	parse(BigInt, SHA.sha256(string(ENV["ADD_BASE"], "#", km)), 16)
 #end
 
-function bsFromKnuth(arg, runs, i)
-	[KnuthFibonacci(kdf(r, i, runs)) for r in 1:runs]
+function bsFromKnuth(arg, run, total, i)
+	KnuthFibonacci(kdf(run, i, total))
 end
 
-function bsFromRan1(arg, runs, i)
-	[Ran1(kdf(r, i, runs)) for r in 1:runs]
+function bsFromRan1(arg, run, total, i)
+	Ran1(kdf(run, i, total))
 end
 
-function bsFromRan2(arg, runs, i)
-	[Ran2(kdf(r, i, runs)) for r in 1:runs]
+function bsFromRan2(arg, run, total, i)
+	Ran2(kdf(run, i, total))
 end
 
-function bsFromRan3(arg, runs, i)
-	[Ran3(kdf(r, i, runs)) for r in 1:runs]
+function bsFromRan3(arg, run, total, i)
+	Ran3(kdf(run, i, total))
 end
 
-function bsFromMRG(arg, runs, i)
-	[MRG(kdf(r, i, runs)) for r in 1:runs]
+function bsFromMRG(arg, run, total, i)
+	MRG(kdf(run, i, total))
 end
 
-function bsFromICG1(arg, runs, i)
-	[ICG(kdf(r, i, runs), 2^31-595, 858993221, 1) for r in 1:runs]
+function bsFromICG1(arg, run, total, i)
+	ICG(kdf(run, i, total), 2^31-595, 858993221, 1)
 end
 
-function bsFromICG2(arg, runs, i)
-	[ICG(kdf(r, i, runs), 2^31-1, 1288490188, 1) for r in 1:runs]
+function bsFromICG2(arg, run, total, i)
+	ICG(kdf(run, i, total), 2^31-1, 1288490188, 1)
 end
 
-function bsFromEICG1(arg, runs, i)
-	[EICG(kdf(r, i, runs), 2^31-1, 1, 0) for r in 1:runs]
+function bsFromEICG1(arg, run, total, i)
+	EICG(kdf(run, i, total), 2^31-1, 1, 0)
 end
 
-function bsFromEICG7(arg, runs, i)
-	[EICG(kdf(r, i, runs), 2^31-1, 7, 0) for r in 1:runs]
+function bsFromEICG7(arg, run, total, i)
+	EICG(kdf(run, i, total), 2^31-1, 7, 0)
 end
 
-function bsFromCCCG(arg, runs, i)
-	[CCCG(kdf(r, i, runs)) for r in 1:runs]
+function bsFromCCCG(arg, run, total, i)
+	CCCG(kdf(run, i, total))
 end
 
-function bsFromOldBSD(arg, runs, i)
-	[LCG(kdf(r, i, runs), 1103515245, 12345, 2147483648, 31) for r in 1:runs]
+function bsFromOldBSD(arg, run, total, i)
+	LCG(kdf(run, i, total), 1103515245, 12345, 2147483648, 31)
 end
 
-function bsFromRandU(arg, runs, i)
-	[LCG(kdf(r, i, runs), 65539, 0, 2^31, 31) for r in 1:runs]
+function bsFromRandU(arg, run, total, i)
+	LCG(kdf(run, i, total), 65539, 0, 2^31, 31)
 end
 
-function bsFromMinstd(arg, runs, i)
-	[LCG(kdf(r, i, runs), 16807, 0, 2147483647, 31) for r in 1:runs]
+function bsFromMinstd(arg, run, total, i)
+	LCG(kdf(run, i, total), 16807, 0, 2147483647, 31)
 end
 
 function nextbit(src::StatedBitSource)
