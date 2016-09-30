@@ -63,8 +63,47 @@ end
 
 # fourth entry point, tweak randomness sources here (e.g. RNGs under tests)
 function step_four(i, N, p, pd, q, qd, sim, simd)
+
+	#step_five(i, N, p, pd, q, qd, sim, simd, "Broken 01010101 ", "",            Analyses.bsFromBroken;
+	step_five(i, N, p, pd, q, qd, sim, simd, "Julia Rand(0:1) ", "",            Analyses.bsFromJulia;
+	step_five(i, N, p, pd, q, qd, sim, simd, "/dev/urandom    ", "urandom",     Analyses.bsFromCmd;
+	#step_five(i, N, p, pd, q, qd, sim, simd, "OpenSSL-RNG     ", "openssl-rng", Analyses.bsFromCmd;
+	#step_five(i, N, p, pd, q, qd, sim, simd, "OpenSSL-RC4     ", "rc4",         Analyses.bsFromCmd;
+	#step_five(i, N, p, pd, q, qd, sim, simd, "SPRITZ          ", "spritz",      Analyses.bsFromCmd;
+	#step_five(i, N, p, pd, q, qd, sim, simd, "VMPC-KSA        ", "vmpc",        Analyses.bsFromCmd;
+	#step_five(i, N, p, pd, q, qd, sim, simd, "RC4+            ", "rc4p",        Analyses.bsFromCmd;
+	#step_five(i, N, p, pd, q, qd, sim, simd, "AES-128-CTR     ", "aes128ctr",   Analyses.bsFromCmd;
+	#step_five(i, N, p, pd, q, qd, sim, simd, "AES-192-CTR     ", "aes192ctr",   Analyses.bsFromCmd;
+	#step_five(i, N, p, pd, q, qd, sim, simd, "AES-256-CTR     ", "aes256ctr",   Analyses.bsFromCmd;
+	#step_five(i, N, p, pd, q, qd, sim, simd, "HC128           ", "hc128",       Analyses.bsFromCmd;
+	#step_five(i, N, p, pd, q, qd, sim, simd, "RABBIT          ", "rabbit",      Analyses.bsFromCmd;
+	#step_five(i, N, p, pd, q, qd, sim, simd, "SALSA20/12      ", "salsa20",     Analyses.bsFromCmd;
+	#step_five(i, N, p, pd, q, qd, sim, simd, "SOSEMANUK       ", "sosemanuk",   Analyses.bsFromCmd;
+	#step_five(i, N, p, pd, q, qd, sim, simd, "GRAIN           ", "grain",       Analyses.bsFromCmd;
+	#step_five(i, N, p, pd, q, qd, sim, simd, "MICKEY          ", "mickey",      Analyses.bsFromCmd;
+	#step_five(i, N, p, pd, q, qd, sim, simd, "TRIVIUM         ", "trivium",     Analyses.bsFromCmd;
+	#step_five(i, N, p, pd, q, qd, sim, simd, "F-FCSR          ", "ffcsr",       Analyses.bsFromCmd;
+
+	step_five(i, N, p, pd, q, qd, sim, simd, "C RAND          ", "c_rand",      Analyses.bsFromCmd;
 	step_five(i, N, p, pd, q, qd, sim, simd, "RANDU CMD       ", "randu",       Analyses.bsFromCmd)
 	step_five(i, N, p, pd, q, qd, sim, simd, "RANDU LCG       ", "",            RandSources.bsFromRandU)
+	step_five(i, N, p, pd, q, qd, sim, simd, "BSD RAND        ", "",            RandSources.bsFromOldBSD;
+	step_five(i, N, p, pd, q, qd, sim, simd, "Minstd          ", "minstd",      RandSources.bsFromMinstd;
+	step_five(i, N, p, pd, q, qd, sim, simd, "Mersenne Twister", "mersenne",    Analyses.bsFromCmd;
+	step_five(i, N, p, pd, q, qd, sim, simd, "Mersenne AR     ", "mersenne_ar", Analyses.bsFromCmd;
+	step_five(i, N, p, pd, q, qd, sim, simd, "Borland C       ", "borland",     Analyses.bsFromCmd;
+	step_five(i, N, p, pd, q, qd, sim, simd, "Visual Studio   ", "vs",          Analyses.bsFromCmd;
+	step_five(i, N, p, pd, q, qd, sim, simd, "CMRG            ", "cmrg",        Analyses.bsFromCmd;
+	step_five(i, N, p, pd, q, qd, sim, simd, "Knuth           ", "",            RandSources.bsFromKnuth;
+	step_five(i, N, p, pd, q, qd, sim, simd, "Ran1            ", "",            RandSources.bsFromRan1;
+	step_five(i, N, p, pd, q, qd, sim, simd, "Ran2            ", "",            RandSources.bsFromRan2;
+	step_five(i, N, p, pd, q, qd, sim, simd, "Ran3            ", "",            RandSources.bsFromRan3;
+	step_five(i, N, p, pd, q, qd, sim, simd, "MRG             ", "",            RandSources.bsFromMRG;
+	step_five(i, N, p, pd, q, qd, sim, simd, "ICG1            ", "",            RandSources.bsFromICG1;
+	step_five(i, N, p, pd, q, qd, sim, simd, "ICG2            ", "",            RandSources.bsFromICG2;
+	step_five(i, N, p, pd, q, qd, sim, simd, "EICG1           ", "",            RandSources.bsFromEICG1;
+	step_five(i, N, p, pd, q, qd, sim, simd, "EICG7           ", "",            RandSources.bsFromEICG7;
+	step_five(i, N, p, pd, q, qd, sim, simd, "CCCG            ", "",            RandSources.bsFromCCCG;
 end
 
 # fifth entry point, tweak number of runs per starting point here
